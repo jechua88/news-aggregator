@@ -18,7 +18,7 @@ class NewsService:
         self.rss_service = RSSService()
         self.scraping_service = ScrapingService()
 
-    async def fetch_all_news(self) -> Dict[str, Any]:
+    def fetch_all_news(self) -> Dict[str, Any]:
         """Fetch news from all sources"""
         try:
             # Check if cache is fresh
@@ -28,7 +28,7 @@ class NewsService:
             
             # Fetch fresh data
             logger.info("Fetching fresh data from all sources")
-            await self._refresh_all_sources()
+            self._refresh_all_sources()
             
             return self._format_response()
             
@@ -47,13 +47,13 @@ class NewsService:
                     "cache_status": "error"
                 }
 
-    async def _refresh_all_sources(self):
+    def _refresh_all_sources(self):
         """Refresh data from all enabled sources"""
         sources = SourceConfig.get_enabled_sources()
         
         for source in sources:
             try:
-                await self._refresh_source(source)
+                self._refresh_source(source)
             except Exception as e:
                 logger.error(f"Error refreshing source {source.name}: {e}")
                 # Continue with other sources
@@ -62,7 +62,7 @@ class NewsService:
         # Mark cache as refreshed
         self.cache.refresh()
 
-    async def _refresh_source(self, source: NewsSource):
+    def _refresh_source(self, source: NewsSource):
         """Refresh data from a single source"""
         try:
             # Try RSS first
@@ -148,7 +148,7 @@ class NewsService:
             "last_success": source.last_updated.isoformat() if source.last_updated else None
         }
 
-    async def refresh_news(self) -> Dict[str, Any]:
+    def refresh_news(self) -> Dict[str, Any]:
         """Manually trigger news refresh"""
         try:
             sources = SourceConfig.get_enabled_sources()

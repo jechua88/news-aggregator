@@ -7,7 +7,7 @@ news_service = NewsService()
 
 
 @router.get("/sources")
-async def get_sources():
+def get_sources():
     """Get all configured news sources"""
     try:
         sources = news_service.get_sources_config()

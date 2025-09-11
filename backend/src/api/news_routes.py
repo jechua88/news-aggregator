@@ -7,10 +7,10 @@ news_service = NewsService()
 
 
 @router.get("/news")
-async def get_news():
+def get_news():
     """Get all news headlines from all sources"""
     try:
-        response = await news_service.fetch_all_news()
+        response = news_service.fetch_all_news()
         
         # Determine response status based on active sources
         total_sources = response["total_sources"]
