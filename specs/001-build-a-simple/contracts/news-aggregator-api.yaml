@@ -1,0 +1,289 @@
+openapi: 3.0.3
+info:
+  title: Financial News Aggregator API
+  description: API for fetching and managing financial news headlines from multiple sources
+  version: 1.0.0
+  contact:
+    name: News Aggregator Team
+    email: support@news-aggregator.com
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.news-aggregator.com
+    description: Production server
+
+paths:
+  /api/news:
+    get:
+      tags:
+        - News
+      summary: Get all news headlines from all sources
+      description: Retrieve recent headlines from all configured financial news sources
+      operationId: get_all_news
+      responses:
+        '200':
+          description: Successful response with news data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsAggregatorResponse'
+        '206':
+          description: Partial success - some sources failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsAggregatorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/sources:
+    get:
+      tags:
+        - Sources
+      summary: Get all configured news sources
+      description: Retrieve list of all configured news sources and their status
+      operationId: get_sources
+      responses:
+        '200':
+          description: Successful response with source configuration
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NewsSourceConfig'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/sources/{source_name}/status:
+    get:
+      tags:
+        - Sources
+      summary: Get status of a specific news source
+      description: Retrieve detailed status information for a specific news source
+      operationId: get_source_status
+      parameters:
+        - name: source_name
+          in: path
+          required: true
+          description: Name of the news source
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response with source status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceStatusResponse'
+        '404':
+          description: Source not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/refresh:
+    post:
+      tags:
+        - Admin
+      summary: Manually trigger news refresh
+      description: Force refresh of news data from all sources
+      operationId: refresh_news
+      responses:
+        '200':
+          description: Refresh triggered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Refresh triggered successfully"
+                  sources_to_refresh:
+                    type: integer
+                    example: 8
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    NewsAggregatorResponse:
+      type: object
+      properties:
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsSourceResponse'
+          description: List of news sources with their headlines
+        total_sources:
+          type: integer
+          description: Total number of configured sources
+          example: 8
+        active_sources:
+          type: integer
+          description: Number of sources that returned data successfully
+          example: 6
+        last_updated:
+          type: string
+          format: date-time
+          description: When the data was last updated
+          example: "2025-09-11T10:30:00Z"
+        cache_status:
+          type: string
+          description: Cache freshness status
+          enum: [fresh, stale]
+          example: "fresh"
+
+    NewsSourceResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the news source
+          example: "Wall Street Journal"
+        headlines:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsHeadlineResponse'
+          description: List of headlines from this source
+        status:
+          type: string
+          description: Status of the source
+          enum: [active, error, disabled]
+          example: "active"
+        last_updated:
+          type: string
+          format: date-time
+          description: When this source was last successfully updated
+          example: "2025-09-11T10:25:00Z"
+        story_count:
+          type: integer
+          description: Number of stories returned for this source
+          example: 8
+
+    NewsHeadlineResponse:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Headline text
+          example: "Markets Rally on Economic Data"
+        link:
+          type: string
+          format: uri
+          description: URL to the full article
+          example: "https://www.wsj.com/articles/markets-rally-123456"
+        published_at:
+          type: string
+          format: date-time
+          description: When the article was published
+          example: "2025-09-11T09:45:00Z"
+        source:
+          type: string
+          description: Name of the source publication
+          example: "Wall Street Journal"
+
+    NewsSourceConfig:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the news source
+          example: "Wall Street Journal"
+        rss_url:
+          type: string
+          format: uri
+          description: RSS feed URL
+          example: "https://feeds.wsj.com/rss/market_news"
+        fallback_url:
+          type: string
+          format: uri
+          description: Fallback scraping URL
+          example: "https://www.wsj.com/news/markets"
+        enabled:
+          type: boolean
+          description: Whether the source is enabled
+          example: true
+        max_stories:
+          type: integer
+          description: Maximum number of stories to fetch
+          minimum: 5
+          maximum: 10
+          example: 10
+
+    SourceStatusResponse:
+      type: object
+      properties:
+        source:
+          type: string
+          description: Name of the source
+          example: "Wall Street Journal"
+        status:
+          type: string
+          description: Current status
+          enum: [active, error, disabled]
+          example: "active"
+        error:
+          type: string
+          description: Error message if status is error
+          example: "Connection timeout"
+        last_attempt:
+          type: string
+          format: date-time
+          description: When the last fetch attempt was made
+          example: "2025-09-11T10:30:00Z"
+        last_success:
+          type: string
+          format: date-time
+          description: When the last successful fetch was made
+          example: "2025-09-11T10:25:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "InternalError"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "An internal error occurred"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2025-09-11T10:30:00Z"
+        details:
+          type: object
+          description: Additional error details
+          example: {"source": "Wall Street Journal", "timeout": 30}
+
+tags:
+  - name: News
+    description: News headline operations
+  - name: Sources
+    description: News source management
+  - name: Admin
+    description: Administrative operations

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(scripts/create-new-feature.sh:*)",
+      "Bash(scripts/setup-plan.sh:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git symbolic-ref:*)",
+      "Bash(REPO_ROOT=\"C:/Users/jonat/News App/news-aggregator\")",
+      "Bash(CURRENT_BRANCH=\"001-build-a-simple\")",
+      "Bash(FEATURE_DIR=\"$REPO_ROOT/specs/$CURRENT_BRANCH\")",
+      "Bash(FEATURE_SPEC=\"$FEATURE_DIR/spec.md\")",
+      "Bash(IMPL_PLAN=\"$FEATURE_DIR/plan.md\")",
+      "Bash(TASKS=\"$FEATURE_DIR/tasks.md\")",
+      "Bash(RESEARCH=\"$FEATURE_DIR/research.md\")",
+      "Bash(DATA_MODEL=\"$FEATURE_DIR/data-model.md\")",
+      "Bash(QUICKSTART=\"$FEATURE_DIR/quickstart.md\")",
+      "Bash(CONTRACTS_DIR=\"$FEATURE_DIR/contracts\")",
+      "Bash(echo:*)",
+      "Bash(FEATURE_DIR=\"$REPO_ROOT/specs/001-build-a-simple\")",
+      "Bash(AVAILABLE_DOCS=\"plan.md,data-model.md,contracts/news-aggregator-api.yaml,research.md,quickstart.md\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
