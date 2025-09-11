@@ -1,0 +1,169 @@
+from typing import List, Dict, Any
+from ..models.news_cache import NewsCache
+from ..models.news_source import NewsSource
+from ..models.news_headline import NewsHeadline, NewsHeadlineResponse
+from ..models.source_config import SourceConfig
+from .rss_service import RSSService
+from .scraping_service import ScrapingService
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class NewsService:
+    """Service for aggregating news from multiple sources"""
+
+    def __init__(self):
+        self.cache = NewsCache()
+        self.rss_service = RSSService()
+        self.scraping_service = ScrapingService()
+
+    async def fetch_all_news(self) -> Dict[str, Any]:
+        """Fetch news from all sources"""
+        try:
+            # Check if cache is fresh
+            if self.cache.is_fresh and self.cache.total_sources_count > 0:
+                logger.info("Returning fresh cached data")
+                return self._format_response()
+            
+            # Fetch fresh data
+            logger.info("Fetching fresh data from all sources")
+            await self._refresh_all_sources()
+            
+            return self._format_response()
+            
+        except Exception as e:
+            logger.error(f"Error in fetch_all_news: {e}")
+            # Return cached data if available, otherwise empty response
+            if self.cache.total_sources_count > 0:
+                logger.info("Returning cached data due to error")
+                return self._format_response()
+            else:
+                return {
+                    "sources": [],
+                    "total_sources": 0,
+                    "active_sources": 0,
+                    "last_updated": "2025-09-11T00:00:00Z",
+                    "cache_status": "error"
+                }
+
+    async def _refresh_all_sources(self):
+        """Refresh data from all enabled sources"""
+        sources = SourceConfig.get_enabled_sources()
+        
+        for source in sources:
+            try:
+                await self._refresh_source(source)
+            except Exception as e:
+                logger.error(f"Error refreshing source {source.name}: {e}")
+                # Continue with other sources
+                continue
+        
+        # Mark cache as refreshed
+        self.cache.refresh()
+
+    async def _refresh_source(self, source: NewsSource):
+        """Refresh data from a single source"""
+        try:
+            # Try RSS first
+            headlines = self.rss_service.fetch_rss_feed(source)
+            source.status = "active"
+            source.last_updated = headlines[0].fetched_at if headlines else None
+            
+        except Exception as rss_error:
+            logger.warning(f"RSS failed for {source.name}, trying scraping: {rss_error}")
+            
+            try:
+                # Fallback to scraping
+                headlines = self.scraping_service.scrape_headlines(source)
+                source.status = "active"
+                source.last_updated = headlines[0].fetched_at if headlines else None
+                
+            except Exception as scrape_error:
+                logger.error(f"Both RSS and scraping failed for {source.name}: {scrape_error}")
+                source.status = "error"
+                headlines = []
+        
+        # Update source with headlines
+        source.headlines = headlines
+        source_with_headlines = source
+        
+        # Update cache
+        self.cache.update_source(source_with_headlines)
+
+    def _format_response(self) -> Dict[str, Any]:
+        """Format cached data for API response"""
+        sources_response = []
+        
+        for source in self.cache.get_all_sources().values():
+            source_response = {
+                "name": source.name,
+                "headlines": [
+                    NewsHeadlineResponse(
+                        title=headline.title,
+                        link=headline.link,
+                        published_at=headline.published_at.isoformat(),
+                        source=headline.source
+                    ).dict() for headline in source.headlines
+                ],
+                "status": source.status,
+                "last_updated": source.last_updated.isoformat() if source.last_updated else None,
+                "story_count": len(source.headlines)
+            }
+            sources_response.append(source_response)
+        
+        return {
+            "sources": sources_response,
+            "total_sources": self.cache.total_sources_count,
+            "active_sources": self.cache.active_sources_count,
+            "last_updated": self.cache.last_refresh.isoformat(),
+            "cache_status": self.cache.cache_status
+        }
+
+    def get_sources_config(self) -> List[Dict[str, Any]]:
+        """Get source configuration"""
+        sources = SourceConfig.get_source_configs()
+        return [
+            {
+                "name": source.name,
+                "rss_url": source.rss_url,
+                "fallback_url": source.fallback_url,
+                "enabled": source.enabled,
+                "max_stories": source.max_stories
+            }
+            for source in sources
+        ]
+
+    def get_source_status(self, source_name: str) -> Dict[str, Any]:
+        """Get status of a specific source"""
+        source = self.cache.get_source(source_name)
+        if not source:
+            raise ValueError(f"Source '{source_name}' not found")
+        
+        return {
+            "source": source.name,
+            "status": source.status,
+            "error": None if source.status == "active" else f"Source has status: {source.status}",
+            "last_attempt": self.cache.last_refresh.isoformat(),
+            "last_success": source.last_updated.isoformat() if source.last_updated else None
+        }
+
+    async def refresh_news(self) -> Dict[str, Any]:
+        """Manually trigger news refresh"""
+        try:
+            sources = SourceConfig.get_enabled_sources()
+            
+            # Clear cache to force fresh fetch
+            self.cache.clear()
+            
+            # Fetch fresh data
+            await self._refresh_all_sources()
+            
+            return {
+                "message": "Refresh triggered successfully",
+                "sources_to_refresh": len(sources)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in refresh_news: {e}")
+            raise Exception(f"Error refreshing news: {e}")
