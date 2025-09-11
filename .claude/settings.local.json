@@ -18,7 +18,13 @@
       "Bash(CONTRACTS_DIR=\"$FEATURE_DIR/contracts\")",
       "Bash(echo:*)",
       "Bash(FEATURE_DIR=\"$REPO_ROOT/specs/001-build-a-simple\")",
-      "Bash(AVAILABLE_DOCS=\"plan.md,data-model.md,contracts/news-aggregator-api.yaml,research.md,quickstart.md\")"
+      "Bash(AVAILABLE_DOCS=\"plan.md,data-model.md,contracts/news-aggregator-api.yaml,research.md,quickstart.md\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(bash:*)",
+      "Bash(touch:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []
