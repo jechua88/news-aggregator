@@ -1,0 +1,72 @@
+import { NewsResponse, NewsSource, Headline } from '../services/api';
+
+export const exportToJSON = (data: NewsResponse, searchTerm?: string) => {
+  const exportData = {
+    metadata: {
+      total_sources: data.total_sources,
+      last_updated: data.last_updated,
+      cache_status: data.cache_status,
+      exported_at: new Date().toISOString(),
+      search_term: searchTerm || null,
+    },
+    sources: data.sources.map(source => ({
+      name: source.name,
+      status: source.status,
+      last_updated: source.last_updated,
+      headlines_count: source.headlines.length,
+      headlines: source.headlines.map(headline => ({
+        title: headline.title,
+        source: headline.source,
+        date: headline.date,
+        link: headline.link
+      }))
+    }))
+  };
+
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `financial-news-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+export const exportToCSV = (data: NewsResponse, searchTerm?: string) => {
+  const headlines: Headline[] = [];
+  
+  data.sources.forEach(source => {
+    source.headlines.forEach(headline => {
+      headlines.push({
+        ...headline,
+        source_name: source.name
+      } as Headline & { source_name: string });
+    });
+  });
+
+  const csvHeaders = ['Source Name', 'Headline', 'Original Source', 'Date', 'Link'];
+  const csvRows = headlines.map(headline => [
+    (headline as any).source_name,
+    `"${headline.title.replace(/"/g, '""')}"`,
+    headline.source,
+    headline.date,
+    headline.link
+  ]);
+
+  const csvContent = [
+    csvHeaders.join(','),
+    ...csvRows.map(row => row.join(','))
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `financial-news-${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};

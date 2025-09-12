@@ -10,7 +10,7 @@ class NewsSource(BaseModel):
     rss_url: str = Field(..., description="Primary RSS feed URL")
     fallback_url: str = Field(..., description="Fallback scraping URL")
     enabled: bool = Field(True, description="Whether the source is active")
-    max_stories: int = Field(8, description="Maximum stories to fetch (5-10)")
+    max_stories: int = Field(50, description="Maximum stories to fetch (5-50)")
     last_updated: Optional[datetime] = Field(None, description="Last successful fetch time")
     status: str = Field("active", description="Current status")
     headlines: List[NewsHeadline] = Field(default_factory=list, description="List of headlines from this source")
@@ -35,8 +35,8 @@ class NewsSource(BaseModel):
 
     @field_validator('max_stories')
     def validate_max_stories(cls, v):
-        if not 5 <= v <= 10:
-            raise ValueError("max_stories must be between 5 and 10")
+        if not 5 <= v <= 50:
+            raise ValueError("max_stories must be between 5 and 50")
         return v
 
     @field_validator('status')

@@ -36,36 +36,33 @@ const HeadlineItem: React.FC<HeadlineItemProps> = ({
       const now = new Date();
       const diffMins = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
       
-      if (diffMins < 30) return 'text-emerald-600';
-      if (diffMins < 120) return 'text-blue-600';
-      if (diffMins < 360) return 'text-purple-600';
-      return 'text-gray-500';
+      if (diffMins < 30) return 'text-emerald-400';
+      if (diffMins < 120) return 'text-blue-400';
+      if (diffMins < 360) return 'text-purple-400';
+      return 'text-gray-400';
     } catch {
-      return 'text-gray-500';
+      return 'text-gray-400';
     }
   };
 
   return (
-    <div className={`border-b border-gradient-to-r from-gray-100 to-gray-200 last:border-b-0 py-4 ${className}`}>
+    <div className={`border-b border-gray-700 last:border-b-0 py-2 ${className}`}>
       <a 
         href={headline.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 rounded-lg px-3 py-2 -mx-3 -my-2 transform hover:scale-[1.01] hover:shadow-md"
+        className="block hover:bg-gray-800 transition-all duration-200 rounded px-2 py-1 -mx-2 -my-1"
       >
-        <h3 className="text-sm font-semibold text-gray-900 mb-2 leading-5 hover:text-blue-800 transition-colors duration-200">
+        <h3 className="text-sm font-medium text-gray-100 mb-1 leading-snug hover:text-blue-300 transition-colors duration-200">
           {headline.title}
         </h3>
-        <div className="flex items-center text-xs space-x-3">
-          <span className="inline-flex items-center px-2 py-1 rounded-full bg-indigo-100 text-indigo-800 font-medium">
+        <div className="flex items-center text-xs space-x-2">
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-indigo-900 text-indigo-200 font-medium">
             {headline.source}
           </span>
-          <div className="flex items-center space-x-1">
-            <div className="w-1.5 h-1.5 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full animate-pulse"></div>
-            <time dateTime={headline.published_at} className={`font-medium ${getTimeColor(headline.published_at)}`}>
-              {formatDate(headline.published_at)}
-            </time>
-          </div>
+          <time dateTime={headline.published_at} className={`font-medium ${getTimeColor(headline.published_at)}`}>
+            {formatDate(headline.published_at)}
+          </time>
         </div>
       </a>
     </div>

@@ -36,7 +36,8 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(set PORT=3001)",
-      "Bash(del .eslintrc.js)"
+      "Bash(del .eslintrc.js)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

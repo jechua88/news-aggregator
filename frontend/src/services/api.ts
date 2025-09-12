@@ -22,19 +22,22 @@ export interface NewsSource {
   status: string;
   headlines: NewsHeadline[];
   last_updated?: string;
+  story_count: number;
 }
 
 export interface NewsResponse {
   sources: NewsSource[];
   total_sources: number;
+  active_sources: number;
   last_updated: string;
-  cache_duration: number;
+  cache_status: string;
 }
 
 export interface SourceStatus {
   source: string;
   status: string;
-  last_updated?: string;
+  last_attempt: string;
+  last_success?: string;
   error?: string;
 }
 
@@ -57,7 +60,7 @@ export class NewsAPI {
 
   static async getSourceStatus(sourceName: string): Promise<SourceStatus> {
     const encodedSourceName = encodeURIComponent(sourceName);
-    const response: AxiosResponse<SourceStatus> = await api.get(`/status/${encodedSourceName}`);
+    const response: AxiosResponse<SourceStatus> = await api.get(`/sources/${encodedSourceName}/status`);
     return response.data;
   }
 
