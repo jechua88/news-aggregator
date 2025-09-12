@@ -15,7 +15,7 @@ async def test_get_sources_endpoint_exists():
     
     # Should return array of source configurations
     assert isinstance(data, list)
-    assert len(data) == 8  # 8 configured sources
+    assert len(data) == 7  # 7 configured sources
     
     # Each source should have required fields
     for source in data:

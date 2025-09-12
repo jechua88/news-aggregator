@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from .news_headline import NewsHeadline
 
 
@@ -15,31 +15,31 @@ class NewsSource(BaseModel):
     status: str = Field("active", description="Current status")
     headlines: List[NewsHeadline] = Field(default_factory=list, description="List of headlines from this source")
 
-    @validator('name')
+    @field_validator('name')
     def validate_name(cls, v):
         if not v or not v.strip():
             raise ValueError("Name cannot be empty")
         return v.strip()
 
-    @validator('rss_url')
+    @field_validator('rss_url')
     def validate_rss_url(cls, v):
         if not v.startswith(('http://', 'https://')):
             raise ValueError("RSS URL must be a valid HTTP/HTTPS URL")
         return v
 
-    @validator('fallback_url')
+    @field_validator('fallback_url')
     def validate_fallback_url(cls, v):
         if not v.startswith(('http://', 'https://')):
             raise ValueError("Fallback URL must be a valid HTTP/HTTPS URL")
         return v
 
-    @validator('max_stories')
+    @field_validator('max_stories')
     def validate_max_stories(cls, v):
         if not 5 <= v <= 10:
             raise ValueError("max_stories must be between 5 and 10")
         return v
 
-    @validator('status')
+    @field_validator('status')
     def validate_status(cls, v):
         valid_statuses = ['active', 'error', 'disabled']
         if v not in valid_statuses:

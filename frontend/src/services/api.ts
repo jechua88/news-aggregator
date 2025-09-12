@@ -1,0 +1,70 @@
+import axios, { AxiosResponse } from 'axios';
+
+const API_BASE_URL = 'http://localhost:8000/api';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export interface NewsHeadline {
+  title: string;
+  link: string;
+  published_at: string;
+  source: string;
+}
+
+export interface NewsSource {
+  name: string;
+  status: string;
+  headlines: NewsHeadline[];
+  last_updated?: string;
+}
+
+export interface NewsResponse {
+  sources: NewsSource[];
+  total_sources: number;
+  last_updated: string;
+  cache_duration: number;
+}
+
+export interface SourceStatus {
+  source: string;
+  status: string;
+  last_updated?: string;
+  error?: string;
+}
+
+export interface RefreshResponse {
+  message: string;
+  sources_to_refresh: number;
+  errors?: string[];
+}
+
+export class NewsAPI {
+  static async getNews(): Promise<NewsResponse> {
+    const response: AxiosResponse<NewsResponse> = await api.get('/news');
+    return response.data;
+  }
+
+  static async getSources(): Promise<NewsSource[]> {
+    const response: AxiosResponse<NewsSource[]> = await api.get('/sources');
+    return response.data;
+  }
+
+  static async getSourceStatus(sourceName: string): Promise<SourceStatus> {
+    const encodedSourceName = encodeURIComponent(sourceName);
+    const response: AxiosResponse<SourceStatus> = await api.get(`/status/${encodedSourceName}`);
+    return response.data;
+  }
+
+  static async refreshNews(): Promise<RefreshResponse> {
+    const response: AxiosResponse<RefreshResponse> = await api.post('/refresh');
+    return response.data;
+  }
+}
+
+export default NewsAPI;

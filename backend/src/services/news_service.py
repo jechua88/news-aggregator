@@ -136,9 +136,14 @@ class NewsService:
 
     def get_source_status(self, source_name: str) -> Dict[str, Any]:
         """Get status of a specific source"""
-        source = self.cache.get_source(source_name)
-        if not source:
+        # First check if source exists in configuration
+        config_source = SourceConfig.get_source_by_name(source_name)
+        if not config_source:
             raise ValueError(f"Source '{source_name}' not found")
+        
+        # Get cached status if available, otherwise use config
+        cached_source = self.cache.get_source(source_name)
+        source = cached_source if cached_source else config_source
         
         return {
             "source": source.name,
@@ -157,7 +162,7 @@ class NewsService:
             self.cache.clear()
             
             # Fetch fresh data
-            await self._refresh_all_sources()
+            self._refresh_all_sources()
             
             return {
                 "message": "Refresh triggered successfully",

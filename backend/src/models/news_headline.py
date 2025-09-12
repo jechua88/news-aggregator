@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class NewsHeadline(BaseModel):
@@ -11,7 +11,7 @@ class NewsHeadline(BaseModel):
     source: str = Field(..., description="Source name")
     fetched_at: datetime = Field(default_factory=datetime.now, description="When this headline was fetched")
 
-    @validator('title')
+    @field_validator('title')
     def validate_title(cls, v):
         if not v or not v.strip():
             raise ValueError("Title cannot be empty")
@@ -22,13 +22,13 @@ class NewsHeadline(BaseModel):
             raise ValueError("Title cannot exceed 500 characters")
         return title
 
-    @validator('link')
+    @field_validator('link')
     def validate_link(cls, v):
         if not v.startswith(('http://', 'https://')):
             raise ValueError("Link must be a valid HTTP/HTTPS URL")
         return v
 
-    @validator('published_at')
+    @field_validator('published_at')
     def validate_published_at(cls, v):
         now = datetime.now(v.tzinfo) if v.tzinfo else datetime.now()
         time_diff = now - v
@@ -36,7 +36,7 @@ class NewsHeadline(BaseModel):
             raise ValueError("Published date must be within the last 7 days")
         return v
 
-    @validator('source')
+    @field_validator('source')
     def validate_source(cls, v):
         if not v or not v.strip():
             raise ValueError("Source cannot be empty")

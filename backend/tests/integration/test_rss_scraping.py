@@ -7,7 +7,7 @@ from unittest.mock import patch, AsyncMock
 async def test_rss_fallback_scraping():
     """Test that RSS failures fall back to web scraping"""
     # This test will fail until we implement fallback scraping
-    with patch('backend.services.rss_service.fetch_rss_feed') as mock_rss:
+    with patch('src.services.rss_service.fetch_rss_feed') as mock_rss:
         # Mock RSS failure
         mock_rss.side_effect = Exception("RSS feed unavailable")
         
@@ -47,7 +47,7 @@ async def test_scraping_fallback_content():
 async def test_scraping_error_handling():
     """Test that scraping errors are handled gracefully"""
     # This test will fail until we implement proper error handling
-    with patch('backend.services.scraping_service.scrape_headlines') as mock_scrape:
+    with patch('src.services.scraping_service.scrape_headlines') as mock_scrape:
         # Mock scraping failure
         mock_scrape.side_effect = Exception("Scraping failed")
         
