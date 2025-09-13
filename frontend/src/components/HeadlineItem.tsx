@@ -1,5 +1,5 @@
 import React from 'react';
-import { NewsHeadline } from '../services/api.ts';
+import { NewsHeadline } from '../services/api';
 
 interface HeadlineItemProps {
   headline: NewsHeadline;

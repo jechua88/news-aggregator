@@ -1,6 +1,5 @@
-import React from 'react';
-import Dashboard from './pages/Dashboard.tsx';
-import ErrorBoundary from './components/ErrorBoundary.tsx';
+import Dashboard from './pages/Dashboard';
+import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
 
 function App() {

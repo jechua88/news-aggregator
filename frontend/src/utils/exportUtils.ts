@@ -1,4 +1,4 @@
-import { NewsResponse, NewsSource, Headline } from '../services/api';
+import { NewsResponse, NewsSource, NewsHeadline } from '../services/api';
 
 export const exportToJSON = (data: NewsResponse, searchTerm?: string) => {
   const exportData = {
@@ -17,7 +17,7 @@ export const exportToJSON = (data: NewsResponse, searchTerm?: string) => {
       headlines: source.headlines.map(headline => ({
         title: headline.title,
         source: headline.source,
-        date: headline.date,
+        date: headline.published_at,
         link: headline.link
       }))
     }))
@@ -35,23 +35,23 @@ export const exportToJSON = (data: NewsResponse, searchTerm?: string) => {
 };
 
 export const exportToCSV = (data: NewsResponse, searchTerm?: string) => {
-  const headlines: Headline[] = [];
+  const headlines: (NewsHeadline & { source_name: string })[] = [];
   
   data.sources.forEach(source => {
     source.headlines.forEach(headline => {
       headlines.push({
         ...headline,
         source_name: source.name
-      } as Headline & { source_name: string });
+      });
     });
   });
 
   const csvHeaders = ['Source Name', 'Headline', 'Original Source', 'Date', 'Link'];
   const csvRows = headlines.map(headline => [
-    (headline as any).source_name,
+    headline.source_name,
     `"${headline.title.replace(/"/g, '""')}"`,
     headline.source,
-    headline.date,
+    headline.published_at,
     headline.link
   ]);
 

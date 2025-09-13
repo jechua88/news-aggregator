@@ -1,6 +1,6 @@
 import React from 'react';
-import { NewsSource as NewsSourceType } from '../services/api.ts';
-import HeadlineItem from './HeadlineItem.tsx';
+import { NewsSource as NewsSourceType } from '../services/api';
+import HeadlineItem from './HeadlineItem';
 
 interface NewsSourceProps {
   source: NewsSourceType;

@@ -4,6 +4,11 @@ from fastapi.responses import JSONResponse
 from .api import news_routes, sources_routes, status_routes, refresh_routes
 import logging
 import time
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,9 +22,10 @@ app = FastAPI(
 )
 
 # Add CORS middleware for frontend communication
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

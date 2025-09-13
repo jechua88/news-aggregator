@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import NewsAPI, { NewsResponse } from '../services/api.ts';
-import NewsSource from '../components/NewsSource.tsx';
-import LoadingSpinner from '../components/LoadingSpinner.tsx';
-import ErrorMessage from '../components/ErrorMessage.tsx';
-import SkeletonLoader from '../components/SkeletonLoader.tsx';
-import { exportToJSON, exportToCSV } from '../utils/exportUtils.ts';
+import NewsAPI, { NewsResponse } from '../services/api';
+import NewsSource from '../components/NewsSource';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
+import SkeletonLoader from '../components/SkeletonLoader';
+import { exportToJSON, exportToCSV } from '../utils/exportUtils';
 
 const Dashboard: React.FC = () => {
   const [newsData, setNewsData] = useState<NewsResponse | null>(null);
