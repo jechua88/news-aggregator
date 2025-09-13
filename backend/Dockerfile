@@ -1,24 +1,27 @@
-FROM python:3.11-slim
+# Stage 1: build frontend
+FROM node:20 AS frontend-build
+WORKDIR /frontend
+COPY frontend/package*.json ./         
+RUN npm install --legacy-peer-deps
+COPY frontend/ ./
+RUN npm run build
 
+# Stage 2: backend
+FROM python:3.11-slim
 WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-# Create a non-root user
-RUN adduser --disabled-password --gecos '' appuser
-
-# Install Python dependencies
-COPY requirements.txt ./
+# Install backend deps
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source
-COPY src ./src
+# Copy backend source
+COPY backend/src ./src
+# (optional) COPY backend/tests ./tests
+
+# Copy built frontend
+COPY --from=frontend-build /frontend/build ./static
 
 EXPOSE 8000
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "src.main:app", "--bind", "0.0.0.0:8000"]
 
-USER appuser
-
-# Run using Gunicorn with Uvicorn workers
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "2", "-b", "0.0.0.0:8000", "src.main:app"]
 
