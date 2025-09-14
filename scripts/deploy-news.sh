@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Deploy test1 backend in Docker (127.0.0.1:8000), serve frontend via Nginx, add SSL.
+# Deploy news backend in Docker (127.0.0.1:8000), serve frontend via Nginx, add SSL.
 
-APP_DIR="/var/www/test1"
-DOMAIN="test1.jechua.com"
-IMAGE_NAME="test1-api:latest"
-CONTAINER_NAME="test1_api"
+APP_DIR="/var/www/news"
+DOMAIN="news.jechua.com"
+IMAGE_NAME="news-api:latest"
+CONTAINER_NAME="news_api"
 HOST_BIND="127.0.0.1:8000"
 
 echo "[1/6] Ensure prerequisites (docker, nginx)"
@@ -42,7 +42,7 @@ npm ci || npm install
 npm run build
 
 sudo tee "/etc/nginx/sites-available/${DOMAIN}" >/dev/null <<NGINX
-$(sed 's/.*/&/g' "$APP_DIR/nginx/test1.jechua.com.conf")
+$(sed 's/.*/&/g' "$APP_DIR/nginx/news.jechua.com.conf")
 NGINX
 
 sudo ln -sf "/etc/nginx/sites-available/${DOMAIN}" "/etc/nginx/sites-enabled/${DOMAIN}"

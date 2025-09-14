@@ -5,7 +5,7 @@ import axios, { AxiosResponse } from 'axios';
 const runtimeBase =
   (process.env.REACT_APP_API_BASE_URL && `${process.env.REACT_APP_API_BASE_URL}`) ||
   (typeof window !== 'undefined' ? window.location.origin : '') ||
-  'https://test1.jechua.com';
+  'https://news.jechua.com';
 
 const API_BASE_URL = `${runtimeBase.replace(/\/$/, '')}/api`;
 

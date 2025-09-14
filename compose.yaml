@@ -1,8 +1,8 @@
 services:
   api:
     build: ./backend
-    image: test1-api:latest
-    container_name: test1_api
+    image: news-api:latest
+    container_name: news_api
     env_file:
       - ./backend/.env
     ports:

@@ -39,7 +39,7 @@ async def frontend_catchall(full_path: str):
     return FileResponse(index_path)
 
 # Add CORS middleware for frontend communication
-cors_origins = os.getenv("CORS_ORIGINS", "https://test1.jechua.com").split(",")
+cors_origins = os.getenv("CORS_ORIGINS", "https://news.jechua.com").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
