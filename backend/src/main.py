@@ -1,9 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
 from .api import news_routes, sources_routes, status_routes, refresh_routes
 import logging
 import time
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -16,10 +23,26 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Include API routes
+app.include_router(news_routes.router, prefix="/api")
+app.include_router(sources_routes.router, prefix="/api")
+app.include_router(status_routes.router, prefix="/api")
+app.include_router(refresh_routes.router, prefix="/api")
+
+# Serve frontend build
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+# Optional: fallback so React Router works
+@app.get("/{full_path:path}")
+async def frontend_catchall(full_path: str):
+    index_path = os.path.join("static", "index.html")
+    return FileResponse(index_path)
+
 # Add CORS middleware for frontend communication
+cors_origins = os.getenv("CORS_ORIGINS", "https://test1.jechua.com").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,12 +63,6 @@ async def log_requests(request, call_next):
     logger.info(f"Response: {response.status_code} - {process_time:.4f}s")
     
     return response
-
-# Include API routes
-app.include_router(news_routes.router, prefix="/api")
-app.include_router(sources_routes.router, prefix="/api")
-app.include_router(status_routes.router, prefix="/api")
-app.include_router(refresh_routes.router, prefix="/api")
 
 # Global exception handler
 @app.exception_handler(Exception)

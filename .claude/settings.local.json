@@ -30,7 +30,22 @@
       "Bash(timeout:*)",
       "Bash(curl:*)",
       "Bash(pkill:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(npm start)",
+      "Bash(npm install)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(set PORT=3001)",
+      "Bash(del .eslintrc.js)",
+      "WebSearch",
+      "Bash(grep:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(find:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(react-scripts build:*)",
+      "Bash(npx react-scripts build:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

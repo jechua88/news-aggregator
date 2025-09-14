@@ -10,7 +10,11 @@ news_service = NewsService()
 async def get_source_status(source_name: str = Path(..., description="Name of the news source")):
     """Get status of a specific news source"""
     try:
-        status = news_service.get_source_status(source_name)
+        # Decode URL-encoded source name
+        import urllib.parse
+        decoded_source_name = urllib.parse.unquote(source_name)
+        
+        status = news_service.get_source_status(decoded_source_name)
         return status
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

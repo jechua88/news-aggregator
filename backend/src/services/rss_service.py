@@ -24,7 +24,11 @@ class RSSService:
             response = requests.get(
                 source.rss_url, 
                 timeout=self.timeout,
-                headers={'User-Agent': 'News-Aggregator/1.0'}
+                headers={
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    'Accept': 'application/rss+xml, application/xml, text/xml',
+                    'Accept-Language': 'en-US,en;q=0.9'
+                }
             )
             response.raise_for_status()
             
@@ -32,7 +36,8 @@ class RSSService:
             feed = feedparser.parse(response.content)
             
             headlines = []
-            for entry in feed.entries[:source.max_stories]:
+            # Process all entries first, then sort and limit
+            for entry in feed.entries:
                 try:
                     # Parse publication date
                     published_at = self._parse_published_date(entry)
@@ -49,7 +54,11 @@ class RSSService:
                     logger.warning(f"Error parsing entry for {source.name}: {e}")
                     continue
             
-            logger.info(f"Successfully fetched {len(headlines)} headlines from {source.name}")
+            # Sort by publication date (most recent first) and limit
+            headlines.sort(key=lambda x: x.published_at, reverse=True)
+            headlines = headlines[:source.max_stories]
+            
+            logger.info(f"Successfully fetched {len(headlines)} headlines from {source.name} (sorted by freshness)")
             return headlines
             
         except requests.Timeout:

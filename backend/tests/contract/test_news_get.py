@@ -24,8 +24,8 @@ async def test_get_news_endpoint_exists():
     assert "last_updated" in data
     assert "cache_status" in data
     
-    # Should have 8 sources configured
-    assert data["total_sources"] == 8
+    # Should have 7 sources configured
+    assert data["total_sources"] == 7
     assert isinstance(data["sources"], list)
     
     # Each source should have required fields

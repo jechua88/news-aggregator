@@ -7,7 +7,7 @@ from unittest.mock import patch, AsyncMock
 async def test_graceful_error_handling_partial_failure():
     """Test that partial source failures don't break entire response"""
     # This test will fail until we implement graceful error handling
-    with patch('backend.services.news_service.fetch_all_news') as mock_fetch:
+    with patch('src.services.news_service.fetch_all_news') as mock_fetch:
         # Mock partial success - some sources fail, others succeed
         mock_fetch.return_value = {
             "sources": [
@@ -51,7 +51,7 @@ async def test_graceful_error_handling_partial_failure():
 async def test_timeout_handling():
     """Test that network timeouts are handled gracefully"""
     # This test will fail until we implement timeout handling
-    with patch('backend.services.rss_service.fetch_rss_feed') as mock_rss:
+    with patch('src.services.rss_service.fetch_rss_feed') as mock_rss:
         # Mock timeout
         mock_rss.side_effect = TimeoutError("Request timeout")
         
@@ -90,7 +90,7 @@ async def test_cache_fallback_on_failure():
         response1 = await client.get("/api/news")
         
         # Force failure scenario
-        with patch('backend.services.news_service.fetch_all_news') as mock_fetch:
+        with patch('src.services.news_service.fetch_all_news') as mock_fetch:
             mock_fetch.side_effect = Exception("Fresh data fetch failed")
             
             # Second request should use cache

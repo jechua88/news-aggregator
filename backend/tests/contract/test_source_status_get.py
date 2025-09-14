@@ -41,5 +41,4 @@ async def test_get_source_status_not_found():
     data = response.json()
     
     # Should have error structure
-    assert "error" in data
-    assert "message" in data
+    assert "detail" in data

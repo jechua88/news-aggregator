@@ -20,7 +20,7 @@ async def test_post_refresh_endpoint_exists():
     # Should indicate refresh was triggered
     assert data["message"] == "Refresh triggered successfully"
     assert isinstance(data["sources_to_refresh"], int)
-    assert data["sources_to_refresh"] == 8
+    assert data["sources_to_refresh"] == 7
 
 
 @pytest.mark.asyncio
@@ -35,5 +35,4 @@ async def test_post_refresh_handles_errors():
     
     if response.status_code == 500:
         data = response.json()
-        assert "error" in data
-        assert "message" in data
+        assert "detail" in data

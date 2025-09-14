@@ -10,7 +10,7 @@ news_service = NewsService()
 async def refresh_news():
     """Manually trigger news refresh"""
     try:
-        response = await news_service.refresh_news()
+        response = news_service.refresh_news()
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

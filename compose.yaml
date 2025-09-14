@@ -1,0 +1,11 @@
+services:
+  api:
+    build: ./backend
+    image: test1-api:latest
+    container_name: test1_api
+    env_file:
+      - ./backend/.env
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
