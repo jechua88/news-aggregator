@@ -1,5 +1,6 @@
 import feedparser
 import requests
+from ..core.http_client import get_shared_session
 from typing import List, Optional
 from datetime import datetime
 from ..models.news_headline import NewsHeadline
@@ -12,8 +13,10 @@ logger = logging.getLogger(__name__)
 class RSSService:
     """Service for fetching RSS feeds"""
 
-    def __init__(self, timeout: int = 10):
+    def __init__(self, timeout: int = 10, retries: int = 2, backoff: float = 0.3):
         self.timeout = timeout
+        # Use shared session for efficiency; retries/backoff configured centrally
+        self.session = get_shared_session()
 
     def fetch_rss_feed(self, source: NewsSource) -> List[NewsHeadline]:
         """Fetch and parse RSS feed for a given source"""
@@ -21,7 +24,7 @@ class RSSService:
             logger.info(f"Fetching RSS feed for {source.name}: {source.rss_url}")
             
             # Fetch RSS feed
-            response = requests.get(
+            response = self.session.get(
                 source.rss_url, 
                 timeout=self.timeout,
                 headers={

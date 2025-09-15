@@ -13,6 +13,8 @@ const Dashboard: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const SELECTED_SOURCES_KEY = 'news_selected_sources';
+  const SEARCH_TERM_KEY = 'news_search_term';
 
   const fetchNews = async () => {
     try {
@@ -49,13 +51,33 @@ const Dashboard: React.FC = () => {
   // Initialize selected sources when news data loads
   useEffect(() => {
     if (newsData && selectedSources.length === 0) {
+      const saved = localStorage.getItem(SELECTED_SOURCES_KEY);
+      if (saved) {
+        try {
+          const parsed: string[] = JSON.parse(saved);
+          const valid = newsData.sources.map(s => s.name);
+          setSelectedSources(parsed.filter(name => valid.includes(name)));
+          return;
+        } catch {}
+      }
       setSelectedSources(newsData.sources.map(source => source.name));
     }
   }, [newsData]);
 
   useEffect(() => {
+    const savedSearch = localStorage.getItem(SEARCH_TERM_KEY);
+    if (savedSearch) setSearchTerm(savedSearch);
     fetchNews();
   }, []);
+
+  // Persist selections
+  useEffect(() => {
+    localStorage.setItem(SELECTED_SOURCES_KEY, JSON.stringify(selectedSources));
+  }, [selectedSources]);
+
+  useEffect(() => {
+    localStorage.setItem(SEARCH_TERM_KEY, searchTerm);
+  }, [searchTerm]);
 
   // Filter data based on search term and selected sources
   const filteredData = React.useMemo(() => {
@@ -117,9 +139,7 @@ const Dashboard: React.FC = () => {
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
                   Financial News Aggregator
                 </h1>
-                <p className="text-sm text-gray-300 mt-1 font-medium">
-                  🚀 Loading latest financial news...
-                </p>
+                <p className="text-sm text-gray-300 mt-1 font-medium">Loading latest financial news...</p>
               </div>
               <LoadingSpinner size="sm" />
             </div>
@@ -147,24 +167,8 @@ const Dashboard: React.FC = () => {
                 Financial News Aggregator
               </h1>
               <p className="text-sm text-gray-300 mt-1 font-medium">
-                🚀 Real-time financial news from trusted sources
+                Real-time financial news from trusted sources
               </p>
-              <div className="flex items-center space-x-4 mt-2">
-                <span className="text-xs text-gray-400">
-                  📅 {new Date().toLocaleDateString('en-US', { 
-                    weekday: 'long',
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </span>
-                <span className="text-xs text-gray-400">
-                  🕐 {new Date().toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit'
-                  })}
-                </span>
-              </div>
             </div>
             <div className="flex items-center space-x-3">
               {newsData && (
@@ -229,18 +233,18 @@ const Dashboard: React.FC = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-lg font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
-                      📊 News Summary
+                      News Summary
                     </h2>
                     <p className="text-sm text-gray-200 font-medium">
                       <span className="inline-flex items-center px-2 py-1 rounded-full bg-emerald-900 text-emerald-200 text-xs font-semibold mr-2">
                         {newsData.total_sources} sources
                       </span>
-                      • Last updated: {formatLastUpdated(newsData.last_updated)}
+                      Last updated: {formatLastUpdated(newsData.last_updated)}
                     </p>
                   </div>
                   <div className="mt-3 sm:mt-0">
                     <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-900 text-emerald-200 border border-emerald-700 shadow-sm">
-                      ⚡ Cache: {newsData.cache_status}
+                      Cache: {newsData.cache_status}
                     </span>
                   </div>
                 </div>
@@ -321,3 +325,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+

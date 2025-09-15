@@ -1,9 +1,12 @@
 import requests
+from ..core.http_client import get_shared_session
 from bs4 import BeautifulSoup
 from typing import List, Optional
 from datetime import datetime
 from ..models.news_headline import NewsHeadline
 from ..models.news_source import NewsSource
+from ..core.selectors import get_selectors_for_source
+from urllib.parse import urljoin
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,8 +15,9 @@ logger = logging.getLogger(__name__)
 class ScrapingService:
     """Service for web scraping when RSS fails"""
 
-    def __init__(self, timeout: int = 10):
+    def __init__(self, timeout: int = 10, retries: int = 2, backoff: float = 0.3):
         self.timeout = timeout
+        self.session = get_shared_session()
 
     def scrape_headlines(self, source: NewsSource) -> List[NewsHeadline]:
         """Scrape headlines from fallback URL"""
@@ -21,7 +25,7 @@ class ScrapingService:
             logger.info(f"Scraping headlines for {source.name}: {source.fallback_url}")
             
             # Fetch webpage
-            response = requests.get(
+            response = self.session.get(
                 source.fallback_url,
                 timeout=self.timeout,
                 headers={
@@ -88,25 +92,8 @@ class ScrapingService:
         return headlines
 
     def _get_selectors_for_source(self, source_name: str) -> List[str]:
-        """Get CSS selectors for a specific source"""
-        # Generic selectors that might work for many news sites
-        generic_selectors = [
-            'h1 a', 'h2 a', 'h3 a',
-            '.headline a', '.title a',
-            'article a', '.story-headline a',
-            '.news-title a', '.article-title a'
-        ]
-        
-        # Source-specific selectors (can be expanded)
-        source_selectors = {
-            'Wall Street Journal': ['.WSJTheme--headline--7xZ5j39U a'],
-            'Bloomberg': ['.headline__text'],
-            'CNBC': ['.Card-title'],
-            'DealStreetAsia': ['h3 a'],
-        }
-        
-        # Return source-specific selectors if available, otherwise generic
-        return source_selectors.get(source_name, generic_selectors)
+        """Get CSS selectors for a specific source from provider"""
+        return get_selectors_for_source(source_name)
 
     def _parse_headline_element(self, element, source: NewsSource) -> Optional[NewsHeadline]:
         """Parse a single headline element"""
@@ -122,10 +109,12 @@ class ScrapingService:
                 return None
                 
             # Handle relative URLs
-            if link.startswith('/'):
-                # Convert to absolute URL
-                base_url = source.fallback_url.rstrip('/')
-                link = base_url + link
+            if not link.lower().startswith(("http://", "https://")):
+                link = urljoin(source.fallback_url, link)
+
+            # Basic guard against non-http(s) links
+            if not link.lower().startswith(("http://", "https://")):
+                return None
             
             # Create headline
             headline = NewsHeadline(

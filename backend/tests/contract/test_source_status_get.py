@@ -1,5 +1,8 @@
+import os
+os.environ.setdefault("SERVE_STATIC", "false")
 import pytest
-import httpx
+from httpx import AsyncClient
+from src.main import create_app
 
 
 @pytest.mark.asyncio
@@ -8,7 +11,8 @@ async def test_get_source_status_endpoint_exists():
     # This test will fail because the endpoint doesn't exist yet
     source_name = "Wall Street Journal"
     
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    app = create_app()
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         response = await client.get(f"/api/sources/{source_name}/status")
     
     # These assertions should fail until implementation
@@ -33,7 +37,8 @@ async def test_get_source_status_not_found():
     # This test will fail until we implement proper error handling
     invalid_source = "Nonexistent Source"
     
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    app = create_app()
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         response = await client.get(f"/api/sources/{invalid_source}/status")
     
     # Should return 404 for invalid source

@@ -1,5 +1,7 @@
 from typing import List, Dict, Any, Optional
 from .news_source import NewsSource
+import json
+import os
 
 
 class SourceConfig:
@@ -53,6 +55,19 @@ class SourceConfig:
     @classmethod
     def get_source_configs(cls) -> List[NewsSource]:
         """Get all source configurations as NewsSource objects"""
+        # Allow optional external config via env var SOURCES_CONFIG_PATH
+        path = os.getenv("SOURCES_CONFIG_PATH")
+        if path and os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, dict) and "sources" in data:
+                    data = data["sources"]
+                if isinstance(data, list):
+                    return [NewsSource(**config) for config in data]
+            except Exception:
+                # Fallback to built-in config if external parsing fails
+                pass
         return [NewsSource(**config) for config in cls.SOURCES]
 
     @classmethod

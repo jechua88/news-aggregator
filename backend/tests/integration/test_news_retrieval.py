@@ -1,5 +1,8 @@
 import pytest
-import httpx
+from httpx import AsyncClient
+import os
+os.environ.setdefault("SERVE_STATIC", "false")
+from src.main import create_app
 from datetime import datetime, timedelta
 
 
@@ -7,7 +10,8 @@ from datetime import datetime, timedelta
 async def test_news_retrieval_from_all_sources():
     """Test that news retrieval works from all configured sources"""
     # This test will fail until we implement the news service
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    app = create_app()
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         response = await client.get("/api/news")
     
     # These assertions should fail until implementation
@@ -43,7 +47,8 @@ async def test_news_retrieval_from_all_sources():
 async def test_news_data_freshness():
     """Test that news data is reasonably fresh"""
     # This test will fail until we implement timestamp handling
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    app = create_app()
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         response = await client.get("/api/news")
     
     assert response.status_code == 200

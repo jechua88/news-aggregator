@@ -1,11 +1,16 @@
 from typing import List, Dict, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from ..models.news_cache import NewsCache
 from ..models.news_source import NewsSource
 from ..models.news_headline import NewsHeadline, NewsHeadlineResponse
 from ..models.source_config import SourceConfig
 from .rss_service import RSSService
 from .scraping_service import ScrapingService
+from ..core.settings import Settings
+from typing import Optional
+from ..core import metrics
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +18,11 @@ logger = logging.getLogger(__name__)
 class NewsService:
     """Service for aggregating news from multiple sources"""
 
-    def __init__(self):
-        self.cache = NewsCache()
-        self.rss_service = RSSService()
-        self.scraping_service = ScrapingService()
+    def __init__(self, settings: Optional[Settings] = None):
+        self.settings = settings or Settings.from_env()
+        self.cache = NewsCache(refresh_interval_minutes=self.settings.cache_ttl_minutes)
+        self.rss_service = RSSService(timeout=self.settings.request_timeout_seconds)
+        self.scraping_service = ScrapingService(timeout=self.settings.request_timeout_seconds)
 
     def fetch_all_news(self) -> Dict[str, Any]:
         """Fetch news from all sources"""
@@ -24,6 +30,7 @@ class NewsService:
             # Check if cache is fresh
             if self.cache.is_fresh and self.cache.total_sources_count > 0:
                 logger.info("Returning fresh cached data")
+                metrics.inc_cache_hit()
                 return self._format_response()
             
             # Fetch fresh data
@@ -48,39 +55,51 @@ class NewsService:
                 }
 
     def _refresh_all_sources(self):
-        """Refresh data from all enabled sources"""
+        """Refresh data from all enabled sources in parallel."""
         sources = SourceConfig.get_enabled_sources()
-        
-        for source in sources:
+
+        def task(src: NewsSource):
             try:
-                self._refresh_source(source)
+                self._refresh_source(src)
             except Exception as e:
-                logger.error(f"Error refreshing source {source.name}: {e}")
-                # Continue with other sources
-                continue
-        
-        # Mark cache as refreshed
+                logger.error(f"Error refreshing source {src.name}: {e}")
+
+        max_workers = min(8, max(1, len(sources)))
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(task, s) for s in sources]
+            for _ in as_completed(futures):
+                pass
+
+        # Mark cache as fully refreshed at the end
         self.cache.refresh()
 
     def _refresh_source(self, source: NewsSource):
         """Refresh data from a single source"""
         try:
             # Try RSS first
+            start = time.time()
             headlines = self.rss_service.fetch_rss_feed(source)
+            metrics.observe_latency(source.name, "rss", time.time() - start)
+            metrics.inc_success(source.name, "rss")
             source.status = "active"
             source.last_updated = headlines[0].fetched_at if headlines else None
             
         except Exception as rss_error:
             logger.warning(f"RSS failed for {source.name}, trying scraping: {rss_error}")
+            metrics.inc_failure(source.name, "rss")
             
             try:
                 # Fallback to scraping
+                start = time.time()
                 headlines = self.scraping_service.scrape_headlines(source)
+                metrics.observe_latency(source.name, "scrape", time.time() - start)
+                metrics.inc_success(source.name, "scrape")
                 source.status = "active"
                 source.last_updated = headlines[0].fetched_at if headlines else None
                 
             except Exception as scrape_error:
                 logger.error(f"Both RSS and scraping failed for {source.name}: {scrape_error}")
+                metrics.inc_failure(source.name, "scrape")
                 source.status = "error"
                 headlines = []
         
@@ -104,11 +123,12 @@ class NewsService:
                         link=headline.link,
                         published_at=headline.published_at.isoformat(),
                         source=headline.source
-                    ).dict() for headline in source.headlines
+                    ).model_dump() for headline in source.headlines
                 ],
                 "status": source.status,
                 "last_updated": source.last_updated.isoformat() if source.last_updated else None,
-                "story_count": len(source.headlines)
+                "story_count": len(source.headlines),
+                "max_stories": source.max_stories,
             }
             sources_response.append(source_response)
         

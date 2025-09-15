@@ -1,13 +1,16 @@
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, Depends
 from typing import Dict, Any
 from ..services.news_service import NewsService
+from ..core.deps import get_news_service
 
 router = APIRouter()
-news_service = NewsService()
 
 
 @router.get("/sources/{source_name}/status")
-async def get_source_status(source_name: str = Path(..., description="Name of the news source")):
+async def get_source_status(
+    source_name: str = Path(..., description="Name of the news source"),
+    news_service: NewsService = Depends(get_news_service),
+):
     """Get status of a specific news source"""
     try:
         # Decode URL-encoded source name

@@ -1,65 +1,40 @@
 # Financial News Aggregator
 
-A modern web application that aggregates recent headlines from leading financial and business news sources, providing a clean, responsive interface for staying updated on market developments.
+A modern web application that aggregates recent headlines from leading financial and business news sources, with a clean, responsive UI.
 
-## 🚀 Features
+## Features
 
-- **Real-time News Aggregation**: Fetches headlines from 8 major financial news sources
-- **Multiple Data Sources**: Uses RSS feeds with fallback to web scraping
-- **Automatic Refresh**: Updates data every 15 minutes to ensure freshness
-- **Clean Interface**: Responsive design with separate sections for each publication
-- **Error Handling**: Graceful handling of unavailable sources
-- **Fast Performance**: <2s API response time, <500ms frontend render
-- **No Authentication**: Public access to all news content
+- Real-time aggregation from multiple sources
+- RSS first, scraping fallback
+- Automatic refresh and in-memory caching
+- Responsive UI built with React + Tailwind
+- Graceful error handling and source health status
 
-## 📰 Supported News Sources
+## Architecture
 
-- **Wall Street Journal** - Market and business news
-- **Bloomberg** - Financial markets and economics
-- **CNBC** - Business and technology news
-- **DealStreetAsia** - Asian business and startup news
-- **The Business Times (Singapore)** - Singapore and Asian business news
-- **The Edge (Malaysia)** - Malaysian business news
-- **South China Morning Post** - Asian and Chinese business news
-
-## 🏗️ Architecture
-
-### Backend (Python FastAPI)
-- **Framework**: FastAPI with async support
-- **Data Fetching**: feedparser for RSS, BeautifulSoup for scraping
-- **Caching**: In-memory cache with 15-minute refresh cycle
-- **API**: RESTful endpoints with OpenAPI documentation
-- **Testing**: pytest with contract and integration tests
+### Backend (FastAPI)
+- Framework: FastAPI
+- Data fetching: `feedparser` (RSS) and `BeautifulSoup` (scraping)
+- Caching: in-memory with configurable TTL
+- API: REST endpoints with OpenAPI docs
+- Tests: pytest (contract and integration)
 
 ### Frontend (React + TypeScript)
-- **Framework**: React 18+ with TypeScript
-- **Styling**: Tailwind CSS for responsive design
-- **Data Fetching**: Axios for API communication
-- **Testing**: React Testing Library
-- **Build**: Modern React with optimized bundle sizes
+- Framework: React 18 + TypeScript
+- Styling: Tailwind CSS
+- HTTP: Axios
+- Tests: React Testing Library
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
-- **Language**: Python 3.11+
-- **Framework**: FastAPI
-- **Server**: Uvicorn
-- **Data Validation**: Pydantic
-- **HTTP Client**: requests
-- **RSS Parsing**: feedparser
-- **HTML Parsing**: BeautifulSoup
-- **Testing**: pytest
-- **Code Quality**: flake8, black
+- Python 3.11+, FastAPI, Uvicorn/Gunicorn
+- Pydantic, requests, feedparser, beautifulsoup4
 
 ### Frontend
-- **Language**: TypeScript
-- **Framework**: React 18+
-- **Styling**: Tailwind CSS
-- **HTTP Client**: axios
-- **Testing**: React Testing Library
-- **Code Quality**: ESLint, Prettier
+- React 18, TypeScript, Tailwind, CRA
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 - Python 3.11+
@@ -78,53 +53,52 @@ cd backend
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Windows
+venv\Scripts\activate
+# macOS/Linux
+# source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Copy environment file
-cp .env.example .env
-# Edit .env if needed (default settings should work for development)
+cp .env.example .env  # or copy manually on Windows
 ```
 
 ### Frontend Setup
 ```bash
 cd ../frontend
-
-# Install dependencies
 npm install
-
-# Create environment file
 cp .env.example .env
-# Edit .env to point to backend API (default: http://localhost:8000)
 ```
 
-## 🚀 Running the Application
+## Running the Application
 
-### Start Backend
+### Start Backend (dev)
 ```bash
 cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Start Frontend
+### Start Frontend (dev)
 ```bash
 cd frontend
 npm start
 ```
 
-### Access Application
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
+### Access
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
-## 🔌 API Endpoints
+## API Endpoints
 
-### GET /api/news
-Retrieve all news headlines from all sources.
+- GET `/api/news` — all headlines from all sources
+- GET `/api/sources` — configured sources
+- GET `/api/sources/{source}/status` — per‑source status
+- POST `/api/refresh` — trigger refresh
 
-**Response**:
+Example `GET /api/news` response:
 ```json
 {
   "sources": [
@@ -150,167 +124,48 @@ Retrieve all news headlines from all sources.
 }
 ```
 
-### GET /api/sources
-Get all configured news sources and their status.
+## Testing
 
-### GET /api/sources/{source_name}/status
-Get detailed status information for a specific source.
-
-### POST /api/refresh
-Manually trigger a refresh of news data from all sources.
-
-## 🧪 Testing
-
-### Backend Tests
+### Backend
 ```bash
 cd backend
-
-# Run all tests
 pytest
-
-# Run specific test categories
-pytest tests/contract/
-pytest tests/integration/
-pytest tests/unit/
 ```
 
-### Frontend Tests
+### Frontend
 ```bash
 cd frontend
-
-# Run tests
 npm test
-
-# Run tests with coverage
-npm run test:coverage
 ```
 
-### Manual Testing
-Follow the [Quick Start Guide](specs/001-build-a-simple/quickstart.md) for comprehensive validation scenarios.
+## Configuration
 
-## 📊 Performance Targets
+Backend `.env` highlights:
+- `CORS_ORIGINS` — CSV of allowed origins
+- `SERVE_STATIC` — whether FastAPI serves built assets
+- `PARTIAL_SUCCESS_206` — opt‑in to 206 on partial success
+- `CACHE_TTL_MINUTES`, `REQUEST_TIMEOUT_SECONDS`
+- `SOURCES_CONFIG_PATH` — optional JSON path for sources
+- `SELECTORS_CONFIG_PATH` — optional JSON for scraping selectors
+- `LOG_JSON` — output logs in JSON
+- `ENABLE_METRICS` — expose Prometheus `/metrics`
 
-- **API Response Time**: <2 seconds
-- **Frontend Render Time**: <500ms
-- **Cache Refresh Interval**: 15 minutes
-- **Max Stories per Source**: 5-10
-- **Individual Source Timeout**: 10 seconds
-
-## 🔒 Security Considerations
-
-- All external requests use HTTPS
-- Input validation and sanitization
-- Graceful error handling to prevent information leakage
-- No user authentication required (public data)
-- Rate limiting considerations for external sources
-
-## 🚨 Error Handling
-
-- **Graceful Degradation**: Individual source failures don't break the entire application
-- **Caching**: Serves stale data when sources are temporarily unavailable
-- **Timeouts**: Prevents hanging requests from slow sources
-- **Retry Logic**: Automatic fallback from RSS to scraping
-- **Status Monitoring**: Tracks source availability and health
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 news-aggregator/
-├── backend/
-│   ├── src/
-│   │   ├── models/          # Pydantic data models
-│   │   ├── services/        # Business logic services
-│   │   └── api/             # API endpoints and middleware
-│   ├── tests/
-│   │   ├── contract/        # Contract tests
-│   │   ├── integration/     # Integration tests
-│   │   └── unit/           # Unit tests
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/      # React components
-│   │   ├── pages/          # Page components
-│   │   └── services/        # API services
-│   ├── tests/              # Frontend tests
-│   └── package.json
-├── specs/
-│   └── 001-build-a-simple/
-│       ├── spec.md          # Feature specification
-│       ├── plan.md          # Implementation plan
-│       ├── research.md      # Research findings
-│       ├── data-model.md    # Data models
-│       ├── contracts/       # API contracts
-│       ├── quickstart.md    # Quick start guide
-│       └── tasks.md        # Implementation tasks
-└── README.md
+  backend/
+    src/
+      api/
+      models/
+      services/
+      core/
+    requirements.txt
+  frontend/
+    src/
+      components/
+      pages/
+      services/
+    package.json
+  specs/
 ```
-
-## 🔄 Data Flow
-
-1. **Configuration Loading**: Load source configuration from environment
-2. **RSS Fetching**: Attempt RSS feed retrieval for each enabled source
-3. **Fallback Scraping**: If RSS fails, attempt web scraping with BeautifulSoup
-4. **Data Validation**: Parse and validate headline data using Pydantic models
-5. **Caching**: Store validated data in in-memory cache with timestamps
-6. **API Response**: Serve cached data via REST API endpoints
-7. **Frontend Display**: React frontend consumes API and renders responsive UI
-
-## 📈 Monitoring
-
-- **Structured Logging**: Comprehensive logging for debugging and monitoring
-- **Source Health Tracking**: Monitor individual source availability
-- **Performance Metrics**: Track API response times and cache efficiency
-- **Error Tracking**: Log and categorize errors for continuous improvement
-
-## 🤝 Contributing
-
-This project follows Spec-Driven Development principles:
-
-1. **Specification**: Define clear requirements and acceptance criteria
-2. **Planning**: Create detailed implementation plans and data models
-3. **Task Generation**: Break down into executable tasks with TDD
-4. **Implementation**: Follow RED-GREEN-Refactor cycle strictly
-5. **Validation**: Test thoroughly and validate against requirements
-
-### Development Workflow
-
-1. Review feature specification in `specs/001-build-a-simple/spec.md`
-2. Follow implementation plan in `specs/001-build-a-simple/plan.md`
-3. Execute tasks from `specs/001-build-a-simple/tasks.md`
-4. Run tests after each task
-5. Commit changes with descriptive messages
-6. Validate against quickstart scenarios
-
-## 📚 Documentation
-
-- **Feature Specification**: [specs/001-build-a-simple/spec.md](specs/001-build-a-simple/spec.md)
-- **Implementation Plan**: [specs/001-build-a-simple/plan.md](specs/001-build-a-simple/plan.md)
-- **Research Findings**: [specs/001-build-a-simple/research.md](specs/001-build-a-simple/research.md)
-- **Data Models**: [specs/001-build-a-simple/data-model.md](specs/001-build-a-simple/data-model.md)
-- **API Contracts**: [specs/001-build-a-simple/contracts/](specs/001-build-a-simple/contracts/)
-- **Quick Start Guide**: [specs/001-build-a-simple/quickstart.md](specs/001-build-a-simple/quickstart.md)
-- **Implementation Tasks**: [specs/001-build-a-simple/tasks.md](specs/001-build-a-simple/tasks.md)
-
-## 🏛️ Constitution
-
-This project follows a strict constitution that emphasizes:
-- **Testing First**: All tests must be written and fail before implementation
-- **Simplicity**: Avoid unnecessary complexity and design patterns
-- **Documentation**: Comprehensive documentation and clear specifications
-- **Quality**: High code standards with linting and formatting
-- **Observability**: Structured logging and error handling
-
-## 📄 License
-
-[Add your license information here]
-
-## 🙋‍♂️ Support
-
-For support, questions, or contributions:
-- Create an issue in the repository
-- Follow the development workflow outlined above
-- Test thoroughly before submitting changes
-
----
-
-Built with ❤️ using modern web technologies and Spec-Driven Development principles.
