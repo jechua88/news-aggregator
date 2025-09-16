@@ -20,8 +20,9 @@ if ! command -v nginx >/dev/null 2>&1; then
 fi
 
 echo "[2/6] Build backend image"
-cd "$APP_DIR/backend"
-sudo docker build -t "$IMAGE_NAME" .
+# Build with repo root as context so Dockerfile can COPY both backend/ and frontend/
+cd "$APP_DIR"
+sudo docker build -t "$IMAGE_NAME" -f backend/Dockerfile .
 
 echo "[3/6] Run/replace container on $HOST_BIND"
 sudo docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -38,7 +39,15 @@ if ! command -v npm >/dev/null 2>&1; then
   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
   sudo apt-get install -y nodejs
 fi
-npm ci || npm install
+
+# Prefer existing installed deps to avoid peer-conflict churn
+if [ -d node_modules ]; then
+  echo "Using existing node_modules (skipping install)"
+else
+  echo "Installing dependencies (legacy peer deps)"
+  npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+fi
+
 npm run build
 
 sudo tee "/etc/nginx/sites-available/${DOMAIN}" >/dev/null <<NGINX
@@ -63,4 +72,3 @@ sudo certbot --nginx -d "$DOMAIN" --redirect --hsts -m you@example.com --agree-t
 sudo certbot renew --dry-run || true
 
 echo "Done. Verify: https://${DOMAIN} and https://${DOMAIN}/health"
-
