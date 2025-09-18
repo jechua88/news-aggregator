@@ -1,18 +1,16 @@
 import pytest
-import httpx
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch
 
 
 @pytest.mark.asyncio
-async def test_rss_fallback_scraping():
+async def test_rss_fallback_scraping(async_client):
     """Test that RSS failures fall back to web scraping"""
     # This test will fail until we implement fallback scraping
-    with patch('src.services.rss_service.fetch_rss_feed') as mock_rss:
+    with patch('src.services.rss_service.RSSService.fetch_rss_feed') as mock_rss:
         # Mock RSS failure
         mock_rss.side_effect = Exception("RSS feed unavailable")
         
-        async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
-            response = await client.get("/api/news")
+        response = await async_client.get("/api/news")
     
     # Should still return data via fallback
     assert response.status_code in [200, 206]
@@ -23,11 +21,10 @@ async def test_rss_fallback_scraping():
 
 
 @pytest.mark.asyncio
-async def test_scraping_fallback_content():
+async def test_scraping_fallback_content(async_client):
     """Test that scraped content has proper structure"""
     # This test will fail until we implement scraping
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
-        response = await client.get("/api/news")
+    response = await async_client.get("/api/news")
     
     assert response.status_code == 200
     data = response.json()
@@ -44,15 +41,14 @@ async def test_scraping_fallback_content():
 
 
 @pytest.mark.asyncio 
-async def test_scraping_error_handling():
+async def test_scraping_error_handling(async_client):
     """Test that scraping errors are handled gracefully"""
     # This test will fail until we implement proper error handling
-    with patch('src.services.scraping_service.scrape_headlines') as mock_scrape:
+    with patch('src.services.scraping_service.ScrapingService.scrape_headlines') as mock_scrape:
         # Mock scraping failure
         mock_scrape.side_effect = Exception("Scraping failed")
         
-        async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
-            response = await client.get("/api/news")
+        response = await async_client.get("/api/news")
     
     # Should handle scraping failures gracefully
     assert response.status_code in [200, 206]

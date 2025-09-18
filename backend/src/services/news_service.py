@@ -6,6 +6,9 @@ from ..models.source_config import SourceConfig
 from .rss_service import RSSService
 from .scraping_service import ScrapingService
 import logging
+from datetime import timezone
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +18,7 @@ class NewsService:
 
     def __init__(self):
         self.cache = NewsCache()
+        self._lock = threading.Lock()
         self.rss_service = RSSService()
         self.scraping_service = ScrapingService()
 
@@ -48,17 +52,20 @@ class NewsService:
                 }
 
     def _refresh_all_sources(self):
-        """Refresh data from all enabled sources"""
+        """Refresh data from all enabled sources in parallel"""
         sources = SourceConfig.get_enabled_sources()
-        
-        for source in sources:
-            try:
-                self._refresh_source(source)
-            except Exception as e:
-                logger.error(f"Error refreshing source {source.name}: {e}")
-                # Continue with other sources
-                continue
-        
+
+        max_workers = min(8, max(1, len(sources)))
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(self._refresh_source, source): source for source in sources}
+            for fut in as_completed(futures):
+                src_obj = futures[fut]
+                try:
+                    fut.result()
+                except Exception as e:
+                    logger.error(f"Error refreshing source {src_obj.name}: {e}")
+                    continue
+
         # Mark cache as refreshed
         self.cache.refresh()
 
@@ -88,8 +95,9 @@ class NewsService:
         source.headlines = headlines
         source_with_headlines = source
         
-        # Update cache
-        self.cache.update_source(source_with_headlines)
+        # Update cache (thread-safe)
+        with self._lock:
+            self.cache.update_source(source_with_headlines)
 
     def _format_response(self) -> Dict[str, Any]:
         """Format cached data for API response"""
@@ -102,12 +110,12 @@ class NewsService:
                     NewsHeadlineResponse(
                         title=headline.title,
                         link=headline.link,
-                        published_at=headline.published_at.isoformat(),
+                        published_at=headline.published_at.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z'),
                         source=headline.source
-                    ).dict() for headline in source.headlines
+                    ).model_dump() for headline in source.headlines
                 ],
                 "status": source.status,
-                "last_updated": source.last_updated.isoformat() if source.last_updated else None,
+                "last_updated": (source.last_updated.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z') if source.last_updated else None),
                 "story_count": len(source.headlines)
             }
             sources_response.append(source_response)
@@ -116,7 +124,7 @@ class NewsService:
             "sources": sources_response,
             "total_sources": self.cache.total_sources_count,
             "active_sources": self.cache.active_sources_count,
-            "last_updated": self.cache.last_refresh.isoformat(),
+            "last_updated": self.cache.last_refresh.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z'),
             "cache_status": self.cache.cache_status
         }
 

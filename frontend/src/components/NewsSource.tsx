@@ -1,6 +1,7 @@
 import React from 'react';
 import { NewsSource as NewsSourceType } from '../services/api';
 import HeadlineItem from './HeadlineItem';
+import SourceLogo from './SourceLogo';
 
 interface NewsSourceProps {
   source: NewsSourceType;
@@ -24,59 +25,18 @@ const NewsSource: React.FC<NewsSourceProps> = ({
     }
   };
 
-  const getSourceColor = (sourceName: string): string => {
-    const colors = [
-      'border-l-blue-400 bg-slate-800',
-      'border-l-purple-400 bg-slate-800', 
-      'border-l-emerald-400 bg-slate-800',
-      'border-l-orange-400 bg-slate-800',
-      'border-l-pink-400 bg-slate-800',
-      'border-l-indigo-400 bg-slate-800',
-      'border-l-cyan-400 bg-slate-800'
+  const getSourceAccent = (sourceName: string): string => {
+    const accents = [
+      'border-l-[#00ff41] bg-[#13202d] shadow-xl ring-1 ring-[#22303b]', // neon green
+      'border-l-[#ffb000] bg-[#171f2e] shadow-xl ring-1 ring-[#2a3543]', // amber
+      'border-l-[#00bcd4] bg-[#111f2f] shadow-xl ring-1 ring-[#1f3441]', // cyan
+      'border-l-[#ff3d71] bg-[#1b1d2f] shadow-xl ring-1 ring-[#2d2f45]', // magenta
+      'border-l-[#8bc34a] bg-[#132227] shadow-xl ring-1 ring-[#223a3c]', // green
+      'border-l-[#ff9800] bg-[#1f262d] shadow-xl ring-1 ring-[#2f3940]', // orange
+      'border-l-[#7c4dff] bg-[#201c33] shadow-xl ring-1 ring-[#322f47]'  // violet
     ];
     const hash = sourceName.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-    return colors[hash % colors.length];
-  };
-
-  const getSourceLogo = (sourceName: string): React.ReactNode => {
-    const logoComponents: { [key: string]: React.ReactNode } = {
-      'Wall Street Journal': (
-        <div className="w-8 h-8 flex items-center justify-center bg-blue-600 rounded font-bold text-white text-sm">
-          WSJ
-        </div>
-      ),
-      'Bloomberg': (
-        <div className="w-8 h-8 flex items-center justify-center bg-black rounded font-bold text-white text-xs">
-          B
-        </div>
-      ),
-      'CNBC': (
-        <div className="w-8 h-8 flex items-center justify-center bg-red-600 rounded font-bold text-white text-xs">
-          CNBC
-        </div>
-      ),
-      'Financial Times': (
-        <div className="w-8 h-8 flex items-center justify-center bg-pink-200 rounded font-bold text-pink-800 text-sm">
-          FT
-        </div>
-      ),
-      'The Business Times (Singapore)': (
-        <div className="w-8 h-8 flex items-center justify-center bg-blue-800 rounded font-bold text-white text-xs">
-          BT
-        </div>
-      ),
-      'South China Morning Post': (
-        <div className="w-8 h-8 flex items-center justify-center bg-blue-900 rounded font-bold text-white text-xs">
-          SCMP
-        </div>
-      )
-    };
-    
-    return logoComponents[sourceName] || (
-      <div className="w-8 h-8 flex items-center justify-center bg-gray-600 rounded font-bold text-white text-xs">
-        N
-      </div>
-    );
+    return accents[hash % accents.length];
   };
 
   const formatLastUpdated = (dateString?: string): string => {
@@ -102,26 +62,26 @@ const NewsSource: React.FC<NewsSourceProps> = ({
   };
 
   return (
-    <div className={`rounded-xl shadow-lg border-l-4 ${getSourceColor(source.name)} border-r border-t border-b border-slate-600 hover:shadow-xl transition-shadow duration-300 ${className}`}>
-      <div className="px-4 py-3 border-b border-gray-600">
+    <div className={`rounded-lg border-l-4 ${getSourceAccent(source.name)} border border-[#1f2a32]/60 backdrop-blur-sm ${className}`}>
+      <div className="px-4 py-3 border-b border-[#1f2a32] bg-gradient-to-r from-[#1f2d3a] via-[#182632] to-[#101821]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            {getSourceLogo(source.name)}
-            <h2 className="text-lg font-bold text-gray-100 tracking-tight">
+          <div className="flex items-center space-x-3">
+            <SourceLogo name={source.name} className="h-6" />
+            <h2 className="text-lg font-semibold text-[#f4f7fb] tracking-tight">
               {source.name}
             </h2>
           </div>
           <div className="flex items-center space-x-3">
             <span 
-              className={`px-2 py-1 rounded-full text-xs font-semibold border ${getStatusColor(source.status)}`}
+              className={`px-2 py-0.5 rounded text-xs font-semibold border ${getStatusColor(source.status)} uppercase tracking-wide`}
             >
               {source.status}
             </span>
           </div>
         </div>
-        <div className="flex items-center mt-1">
-          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
-          <p className="text-xs text-gray-300 font-medium">
+        <div className="flex items-center mt-2">
+          <div className="w-1.5 h-1.5 bg-[#00ff41] rounded-full mr-2"></div>
+          <p className="text-sm text-[#c5ccd3]">
             Last updated: {formatLastUpdated(source.last_updated)}
           </p>
         </div>
@@ -129,7 +89,7 @@ const NewsSource: React.FC<NewsSourceProps> = ({
       
       <div className="px-4 py-3">
         {source.headlines.length > 0 ? (
-          <div className="space-y-0">
+          <div className="space-y-1">
             {source.headlines.map((headline, index) => (
               <HeadlineItem 
                 key={`${headline.link}-${index}`} 
@@ -138,12 +98,12 @@ const NewsSource: React.FC<NewsSourceProps> = ({
             ))}
           </div>
         ) : (
-          <div className="text-center py-6">
-            <p className="text-gray-400 text-sm">
+          <div className="text-center py-4">
+            <p className="text-[#7a8288] text-sm">
               No headlines available
             </p>
             {source.status === 'error' && (
-              <p className="text-red-400 text-xs mt-1">
+              <p className="text-red-400 text-sm mt-1">
                 Source experiencing issues
               </p>
             )}

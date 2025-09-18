@@ -1,16 +1,16 @@
 import pytest
 import httpx
-from fastapi import FastAPI
+from src.models.source_config import SourceConfig
 
-# These tests will fail until we implement the backend
-# This is the RED phase of RED-GREEN-Refactor
+BASE_URL = "http://127.0.0.1:8000"
+EXPECTED_SOURCE_COUNT = len(SourceConfig.SOURCES)
 
 
 @pytest.mark.asyncio
 async def test_get_news_endpoint_exists():
     """Test that /api/news endpoint exists and returns expected structure"""
     # This test will fail because the endpoint doesn't exist yet
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
         response = await client.get("/api/news")
         
     # These assertions should fail until implementation
@@ -24,8 +24,8 @@ async def test_get_news_endpoint_exists():
     assert "last_updated" in data
     assert "cache_status" in data
     
-    # Should have 7 sources configured
-    assert data["total_sources"] == 7
+    # Should report configured source count
+    assert data["total_sources"] == EXPECTED_SOURCE_COUNT
     assert isinstance(data["sources"], list)
     
     # Each source should have required fields
@@ -41,7 +41,7 @@ async def test_get_news_endpoint_exists():
 async def test_get_news_partial_success():
     """Test that /api/news returns 206 when some sources fail"""
     # This test will fail until we implement partial success handling
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
         response = await client.get("/api/news")
     
     # Should return 206 when some sources fail but not all

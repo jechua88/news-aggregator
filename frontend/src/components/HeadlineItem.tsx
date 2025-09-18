@@ -46,23 +46,25 @@ const HeadlineItem: React.FC<HeadlineItemProps> = ({
   };
 
   return (
-    <div className={`border-b border-gray-700 last:border-b-0 py-2 ${className}`}>
+    <div className={`border-b border-[#1f2a32] last:border-b-0 py-1.5 ${className}`}>
       <a 
         href={headline.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block hover:bg-gray-800 transition-all duration-200 rounded px-2 py-1 -mx-2 -my-1"
+        className="block hover:bg-[#13181c] transition-all duration-150 rounded px-3 py-1 -mx-3 -my-1"
       >
-        <h3 className="text-sm font-medium text-gray-100 mb-1 leading-snug hover:text-blue-300 transition-colors duration-200">
-          {headline.title}
-        </h3>
-        <div className="flex items-center text-xs space-x-2">
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-indigo-900 text-indigo-200 font-medium">
-            {headline.source}
-          </span>
-          <time dateTime={headline.published_at} className={`font-medium ${getTimeColor(headline.published_at)}`}>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-[15px] font-semibold text-[#ecf1f8] leading-snug hover:text-[#ffb000] transition-colors duration-150">
+            {headline.title}
+          </h3>
+          <time dateTime={headline.published_at} className={`text-xs font-semibold whitespace-nowrap pt-0.5 ${getTimeColor(headline.published_at)}`}>
             {formatDate(headline.published_at)}
           </time>
+        </div>
+        <div className="mt-1 flex items-center text-[12px] gap-2 text-[#a9b1b7]">
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#152028] border border-[#23303a] text-[#c5ccd3]">
+            {headline.source}
+          </span>
         </div>
       </a>
     </div>

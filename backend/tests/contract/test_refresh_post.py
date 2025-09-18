@@ -1,12 +1,16 @@
 import pytest
 import httpx
+from src.models.source_config import SourceConfig
+
+BASE_URL = "http://127.0.0.1:8000"
+EXPECTED_SOURCE_COUNT = len(SourceConfig.SOURCES)
 
 
 @pytest.mark.asyncio
 async def test_post_refresh_endpoint_exists():
     """Test that /api/refresh endpoint exists and triggers refresh"""
     # This test will fail because the endpoint doesn't exist yet
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
         response = await client.post("/api/refresh")
     
     # These assertions should fail until implementation
@@ -20,14 +24,14 @@ async def test_post_refresh_endpoint_exists():
     # Should indicate refresh was triggered
     assert data["message"] == "Refresh triggered successfully"
     assert isinstance(data["sources_to_refresh"], int)
-    assert data["sources_to_refresh"] == 7
+    assert data["sources_to_refresh"] == EXPECTED_SOURCE_COUNT
 
 
 @pytest.mark.asyncio
 async def test_post_refresh_handles_errors():
     """Test that /api/refresh handles errors gracefully"""
     # This test will fail until we implement error handling
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
         response = await client.post("/api/refresh")
     
     # Should handle errors gracefully

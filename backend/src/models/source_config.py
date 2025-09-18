@@ -28,18 +28,18 @@ class SourceConfig:
             "max_stories": 50
         },
         {
-            "name": "South China Morning Post",
-            "rss_url": "https://www.scmp.com/rss/4/feed",
-            "fallback_url": "https://www.scmp.com/business",
-            "enabled": True,
-            "max_stories": 50
-        },
-        {
             "name": "Financial Times",
             "rss_url": "https://www.ft.com/markets?format=rss",
             "fallback_url": "https://www.ft.com/markets",
             "enabled": True,
             "max_stories": 30
+        },
+        {
+            "name": "South China Morning Post",
+            "rss_url": "https://www.scmp.com/rss/4/feed",
+            "fallback_url": "https://www.scmp.com/business",
+            "enabled": True,
+            "max_stories": 50
         },
         {
             "name": "Wall Street Journal",
