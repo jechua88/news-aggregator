@@ -3,11 +3,15 @@ set -euo pipefail
 
 # Deploy news backend in Docker (127.0.0.1:8000), serve frontend via Nginx, add SSL.
 
-APP_DIR="/var/www/news"
-DOMAIN="news.jechua.com"
-IMAGE_NAME="news-api:latest"
-CONTAINER_NAME="news_api"
-HOST_BIND="127.0.0.1:8000"
+APP_DIR="${APP_DIR:-/var/www/news}"
+ENV_DIR="${ENV_DIR:-$APP_DIR/config/app}"
+DOMAIN="${DOMAIN:-news.jechua.com}"
+IMAGE_NAME="${IMAGE_NAME:-news-api:latest}"
+CONTAINER_NAME="${CONTAINER_NAME:-news}"
+HOST_BIND="${HOST_BIND:-127.0.0.1:8000}"
+TRAEFIK_NETWORK="${TRAEFIK_NETWORK:-root_default}"
+TRAEFIK_ROUTER="${TRAEFIK_ROUTER:-news}"
+TRAEFIK_CERT_RESOLVER="${TRAEFIK_CERT_RESOLVER:-mytlschallenge}"
 
 echo "[1/6] Ensure prerequisites (docker, nginx)"
 if ! command -v docker >/dev/null 2>&1; then
@@ -28,7 +32,13 @@ echo "[3/6] Run/replace container on $HOST_BIND"
 sudo docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 sudo docker run -d --name "$CONTAINER_NAME" \
   --restart unless-stopped \
-  --env-file "$APP_DIR/backend/.env" \
+  --env-file "$ENV_DIR/backend.env" \
+  --network "$TRAEFIK_NETWORK" \
+  --label "traefik.enable=true" \
+  --label "traefik.http.routers.${TRAEFIK_ROUTER}.rule=Host(\`${DOMAIN}\`)" \
+  --label "traefik.http.routers.${TRAEFIK_ROUTER}.entrypoints=websecure" \
+  --label "traefik.http.routers.${TRAEFIK_ROUTER}.tls.certresolver=${TRAEFIK_CERT_RESOLVER}" \
+  --label "traefik.http.services.${TRAEFIK_ROUTER}.loadbalancer.server.port=8000" \
   -p "$HOST_BIND:8000" \
   "$IMAGE_NAME"
 
@@ -50,9 +60,15 @@ fi
 
 npm run build
 
-sudo tee "/etc/nginx/sites-available/${DOMAIN}" >/dev/null <<NGINX
-$(sed 's/.*/&/g' "$APP_DIR/nginx/news.jechua.com.conf")
+SITE_TEMPLATE="$APP_DIR/config/deploy/nginx/news.jechua.com.conf"
+
+if [ -f "$SITE_TEMPLATE" ]; then
+  sudo tee "/etc/nginx/sites-available/${DOMAIN}" >/dev/null <<NGINX
+$(sed 's/.*/&/g' "$SITE_TEMPLATE")
 NGINX
+else
+  echo "Nginx template not found at $SITE_TEMPLATE" >&2
+fi
 
 sudo ln -sf "/etc/nginx/sites-available/${DOMAIN}" "/etc/nginx/sites-enabled/${DOMAIN}"
 sudo nginx -t

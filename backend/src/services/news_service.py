@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
-from ..models.news_cache import NewsCache
+from ..cache.base import NewsCacheBackend
+from ..cache.in_memory import InMemoryNewsCache
 from ..models.news_source import NewsSource
 from ..models.news_headline import NewsHeadline, NewsHeadlineResponse
 from ..models.source_config import SourceConfig
@@ -16,11 +17,16 @@ logger = logging.getLogger(__name__)
 class NewsService:
     """Service for aggregating news from multiple sources"""
 
-    def __init__(self):
-        self.cache = NewsCache()
+    def __init__(
+        self,
+        cache: NewsCacheBackend | None = None,
+        rss_service: RSSService | None = None,
+        scraping_service: ScrapingService | None = None,
+    ) -> None:
+        self.cache: NewsCacheBackend = cache or InMemoryNewsCache()
         self._lock = threading.Lock()
-        self.rss_service = RSSService()
-        self.scraping_service = ScrapingService()
+        self.rss_service = rss_service or RSSService()
+        self.scraping_service = scraping_service or ScrapingService()
 
     def fetch_all_news(self) -> Dict[str, Any]:
         """Fetch news from all sources"""
@@ -101,9 +107,10 @@ class NewsService:
 
     def _format_response(self) -> Dict[str, Any]:
         """Format cached data for API response"""
+        cached_sources = self.cache.get_all_sources()
         sources_response = []
-        
-        for source in self.cache.get_all_sources().values():
+
+        for source in cached_sources.values():
             source_response = {
                 "name": source.name,
                 "headlines": [
@@ -120,10 +127,13 @@ class NewsService:
             }
             sources_response.append(source_response)
         
+        total_sources = len(cached_sources)
+        active_sources = sum(1 for src in cached_sources.values() if src.status == "active")
+
         return {
             "sources": sources_response,
-            "total_sources": self.cache.total_sources_count,
-            "active_sources": self.cache.active_sources_count,
+            "total_sources": total_sources,
+            "active_sources": active_sources,
             "last_updated": self.cache.last_refresh.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z'),
             "cache_status": self.cache.cache_status
         }

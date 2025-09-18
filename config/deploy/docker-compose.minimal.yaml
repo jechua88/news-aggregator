@@ -1,0 +1,10 @@
+services:
+  api:
+    build: ./backend
+    image: news-api:latest
+    container_name: news_api
+    env_file:
+      - ./config/app/backend.env
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped

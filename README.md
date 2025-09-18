@@ -84,8 +84,9 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Copy environment file
-cp .env.example .env
-# Edit .env if needed (default settings should work for development)
+mkdir -p ../config/app
+cp .env.example ../config/app/backend.env
+# Edit ../config/app/backend.env if needed (default settings should work for development)
 ```
 
 ### Frontend Setup
@@ -158,6 +159,12 @@ Get detailed status information for a specific source.
 
 ### POST /api/refresh
 Manually trigger a refresh of news data from all sources.
+
+### GET /health
+Service health probe with cache and scheduler diagnostics.
+
+### GET /metrics
+Lightweight JSON metrics (total sources, active sources, cache status).
 
 ## 🧪 Testing
 
@@ -314,3 +321,23 @@ For support, questions, or contributions:
 ---
 
 Built with ❤️ using modern web technologies and Spec-Driven Development principles.
+
+## 📁 Repository Layout (key directories)
+
+- `backend/` – FastAPI service.
+- `frontend/` – React application.
+- `config/app/` – Environment templates (git-ignored).
+- `config/deploy/` – Docker Compose and web-server configuration.
+- `docs/` – Deployment/configuration notes.
+- `scripts/` – Operational helper scripts.
+
+
+## 🧰 Development Commands
+
+Common tasks are available via `make`:
+
+- `make backend-env` – Set up the backend virtualenv and install dependencies.
+- `make backend-test` – Run backend pytest suite.
+- `make frontend-test` – Execute frontend Jest tests (CI mode).
+- `make frontend-build` – Build the production React bundle.
+- `make lint` – Run Ruff linting on backend sources.

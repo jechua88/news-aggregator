@@ -1,0 +1,30 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: news-api:latest
+    container_name: news_api
+    env_file:
+      - ./config/app/backend.env
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    # Tuned Gunicorn/Uvicorn for concurrency and timeouts
+    command: [
+      "gunicorn", "-k", "uvicorn.workers.UvicornWorker", "src.main:app",
+      "--bind", "0.0.0.0:8000",
+      "--workers", "2",
+      "--threads", "8",
+      "--keep-alive", "75",
+      "--timeout", "30",
+      "--graceful-timeout", "30",
+      "--access-logfile", "-",
+      "--log-level", "info"
+    ]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8000/api/sources\"); print(\"ok\")' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

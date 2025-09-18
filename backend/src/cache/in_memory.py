@@ -1,20 +1,23 @@
-from datetime import datetime, timedelta
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
-from .news_source import NewsSource
+
+from ..models.news_source import NewsSource
 
 
-class NewsCache:
-    """In-memory cache for news data"""
-    
-    def __init__(self):
+class InMemoryNewsCache:
+    """In-memory cache for news data."""
+
+    def __init__(self, refresh_interval_minutes: int = 15):
         self.sources: Dict[str, NewsSource] = {}
-        self.last_refresh: datetime = datetime.now() - timedelta(minutes=16)  # Start stale
-        self._refresh_interval: int = 15  # minutes
+        self.last_refresh: datetime = datetime.now(timezone.utc) - timedelta(minutes=refresh_interval_minutes + 1)
+        self._refresh_interval: int = refresh_interval_minutes
 
     @property
     def is_fresh(self) -> bool:
         """Check if cache data is fresh"""
-        time_diff = datetime.now() - self.last_refresh
+        time_diff = datetime.now(timezone.utc) - self.last_refresh
         return time_diff.total_seconds() < (self._refresh_interval * 60)
 
     @property
@@ -25,7 +28,7 @@ class NewsCache:
     def update_source(self, source: NewsSource):
         """Update a source in the cache"""
         self.sources[source.name] = source
-        self.last_refresh = datetime.now()
+        self.last_refresh = datetime.now(timezone.utc)
 
     def get_source(self, name: str) -> Optional[NewsSource]:
         """Get a source from cache"""
@@ -37,12 +40,12 @@ class NewsCache:
 
     def refresh(self):
         """Mark cache as refreshed"""
-        self.last_refresh = datetime.now()
+        self.last_refresh = datetime.now(timezone.utc)
 
     def clear(self):
         """Clear all cached data"""
         self.sources.clear()
-        self.last_refresh = datetime.now() - timedelta(minutes=16)  # Mark as stale
+        self.last_refresh = datetime.now(timezone.utc) - timedelta(minutes=16)  # Mark as stale
 
     @property
     def active_sources_count(self) -> int:
