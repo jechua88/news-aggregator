@@ -45,13 +45,15 @@ const HeadlineItem: React.FC<HeadlineItemProps> = ({
     }
   };
 
+  const baseClasses = `block transition-colors duration-150 rounded-sm bg-[#161f29] hover:bg-[#1b2734] ${className}`.trim();
+
   return (
-    <div className={`border-b border-[#1f2a32] last:border-b-0 py-1.5 ${className}`}>
+    <div>
       <a 
         href={headline.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block hover:bg-[#13181c] transition-all duration-150 rounded px-3 py-1 -mx-3 -my-1"
+        className={baseClasses}
       >
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-[15px] font-semibold text-[#ecf1f8] leading-snug hover:text-[#ffb000] transition-colors duration-150">
@@ -61,8 +63,8 @@ const HeadlineItem: React.FC<HeadlineItemProps> = ({
             {formatDate(headline.published_at)}
           </time>
         </div>
-        <div className="mt-1 flex items-center text-[12px] gap-2 text-[#a9b1b7]">
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#152028] border border-[#23303a] text-[#c5ccd3]">
+        <div className="mt-2 flex items-center text-[12px] gap-2 text-[#a9b1b7]">
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#1d2a35] border border-[#2f4050] text-[#c5ccd3]">
             {headline.source}
           </span>
         </div>

@@ -9,11 +9,11 @@ interface DashboardHeaderProps {
 
 const DashboardHeader = ({ newsSummary, actions, subtitle }: DashboardHeaderProps) => {
   return (
-    <div className="flex justify-between items-center py-3">
-      <div>
+    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between py-3">
+      <div className="flex-1 min-w-0">
         <h1 className="text-2xl font-bold tracking-tight">Financial News Aggregator</h1>
         <p className="text-sm text-[#a9b1b7] mt-1">{subtitle ?? 'Real-time financial news from trusted sources'}</p>
-        <div className="flex items-center space-x-4 mt-3 text-sm text-gray-400">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-sm text-gray-400">
           <span>
             📅 {new Date().toLocaleDateString('en-US', {
               weekday: 'long',
@@ -35,7 +35,7 @@ const DashboardHeader = ({ newsSummary, actions, subtitle }: DashboardHeaderProp
           )}
         </div>
       </div>
-      <div className="flex items-center space-x-3">
+      <div className="flex flex-wrap gap-2 w-full md:w-auto md:justify-end" data-testid="dashboard-actions">
         {actions}
       </div>
     </div>

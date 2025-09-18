@@ -27,16 +27,17 @@ const NewsSource: React.FC<NewsSourceProps> = ({
 
   const getSourceAccent = (sourceName: string): string => {
     const accents = [
-      'border-l-[#00ff41] bg-[#13202d] shadow-xl ring-1 ring-[#22303b]', // neon green
-      'border-l-[#ffb000] bg-[#171f2e] shadow-xl ring-1 ring-[#2a3543]', // amber
-      'border-l-[#00bcd4] bg-[#111f2f] shadow-xl ring-1 ring-[#1f3441]', // cyan
-      'border-l-[#ff3d71] bg-[#1b1d2f] shadow-xl ring-1 ring-[#2d2f45]', // magenta
-      'border-l-[#8bc34a] bg-[#132227] shadow-xl ring-1 ring-[#223a3c]', // green
-      'border-l-[#ff9800] bg-[#1f262d] shadow-xl ring-1 ring-[#2f3940]', // orange
-      'border-l-[#7c4dff] bg-[#201c33] shadow-xl ring-1 ring-[#322f47]'  // violet
+      { border: 'border-l-[#00ff41]', ring: 'ring-[#22303b]' },
+      { border: 'border-l-[#ffb000]', ring: 'ring-[#2a3543]' },
+      { border: 'border-l-[#00bcd4]', ring: 'ring-[#1f3441]' },
+      { border: 'border-l-[#ff3d71]', ring: 'ring-[#2d2f45]' },
+      { border: 'border-l-[#8bc34a]', ring: 'ring-[#223a3c]' },
+      { border: 'border-l-[#ff9800]', ring: 'ring-[#2f3940]' },
+      { border: 'border-l-[#7c4dff]', ring: 'ring-[#322f47]' }
     ];
     const hash = sourceName.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-    return accents[hash % accents.length];
+    const accent = accents[hash % accents.length];
+    return `${accent.border} ring-1 ${accent.ring}`;
   };
 
   const formatLastUpdated = (dateString?: string): string => {
@@ -62,8 +63,8 @@ const NewsSource: React.FC<NewsSourceProps> = ({
   };
 
   return (
-    <div className={`rounded-lg border-l-4 ${getSourceAccent(source.name)} border border-[#1f2a32]/60 backdrop-blur-sm ${className}`}>
-      <div className="px-4 py-3 border-b border-[#1f2a32] bg-gradient-to-r from-[#1f2d3a] via-[#182632] to-[#101821]">
+    <div className={`rounded-lg border-l-4 ${getSourceAccent(source.name)} border border-[#273746] bg-[#141d26] shadow-lg ${className}`}>
+      <div className="px-4 py-3 border-b border-[#273746] bg-[#18232f]">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <SourceLogo name={source.name} className="h-6" />
@@ -89,11 +90,12 @@ const NewsSource: React.FC<NewsSourceProps> = ({
       
       <div className="px-4 py-3">
         {source.headlines.length > 0 ? (
-          <div className="space-y-1">
+          <div className="overflow-hidden rounded-md border border-[#273746] divide-y divide-[#2f4050] bg-[#161f29]">
             {source.headlines.map((headline, index) => (
               <HeadlineItem 
                 key={`${headline.link}-${index}`} 
-                headline={headline} 
+                headline={headline}
+                className="px-3 py-2"
               />
             ))}
           </div>

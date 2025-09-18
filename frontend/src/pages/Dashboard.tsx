@@ -13,11 +13,13 @@ import { NewsResponse } from '../services/api';
 
 const DESIRED_ORDER = [
   'Bloomberg',
-  'The Business Times (Singapore)',
+  'Reuters',
+  'Wall Street Journal',
+  'MarketWatch',
   'CNBC',
   'Financial Times',
+  'The Business Times (Singapore)',
   'South China Morning Post',
-  'Wall Street Journal',
 ];
 
 const Dashboard: React.FC = () => {
@@ -110,7 +112,7 @@ const Dashboard: React.FC = () => {
         <>
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center px-3 py-2 border border-[#2b363f] text-[13px] font-medium rounded text-[#E6E6E6] bg-[#0f1316] hover:bg-[#12171b] focus:outline-none focus:ring-1 focus:ring-[#2b363f] transition-colors"
+            className="inline-flex items-center justify-center px-3 py-2 border border-[#2b363f] text-[13px] font-medium rounded text-[#E6E6E6] bg-[#121922] hover:bg-[#161f28] focus:outline-none focus:ring-1 focus:ring-[#2b363f] transition-colors w-full sm:w-auto"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -119,7 +121,7 @@ const Dashboard: React.FC = () => {
           </button>
           <button
             onClick={handleExportJSON}
-            className="inline-flex items-center px-3 py-2 border border-[#2b363f] text-[13px] font-medium rounded text-[#E6E6E6] bg-[#0f1316] hover:bg-[#12171b] focus:outline-none focus:ring-1 focus:ring-[#2b363f] transition-colors"
+            className="inline-flex items-center justify-center px-3 py-2 border border-[#2b363f] text-[13px] font-medium rounded text-[#E6E6E6] bg-[#121922] hover:bg-[#161f28] focus:outline-none focus:ring-1 focus:ring-[#2b363f] transition-colors w-full sm:w-auto"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -131,7 +133,7 @@ const Dashboard: React.FC = () => {
       <button
         onClick={refresh}
         disabled={isFetching}
-        className="inline-flex items-center px-5 py-2.5 border border-[#2b363f] text-[13px] font-semibold rounded text-black bg-[#00ff41] hover:bg-[#1aff5a] focus:outline-none focus:ring-1 focus:ring-[#2b363f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="inline-flex items-center justify-center px-5 py-2.5 border border-[#2b363f] text-[13px] font-semibold rounded text-black bg-[#00ff41] hover:bg-[#1aff5a] focus:outline-none focus:ring-2 focus:ring-[#2b363f] disabled:opacity-50 disabled:cursor-not-allowed transition-transform transition-colors w-full sm:w-auto active:scale-[0.98] shadow-[0_8px_20px_-8px_rgba(0,255,65,0.45)]"
       >
         {isFetching ? (
           <>
@@ -155,7 +157,7 @@ const Dashboard: React.FC = () => {
       <PageShell header={<DashboardHeader newsSummary={null} actions={<LoadingSpinner size="sm" />} />}>
         <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {Array.from({ length: 6 }).map((_, index) => (
+            {Array.from({ length: 8 }).map((_, index) => (
               <SkeletonLoader key={index} className="h-fit" />
             ))}
           </div>
@@ -235,4 +237,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-

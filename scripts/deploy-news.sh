@@ -37,7 +37,14 @@ sudo docker run -d --name "$CONTAINER_NAME" \
   --label "traefik.enable=true" \
   --label "traefik.http.routers.${TRAEFIK_ROUTER}.rule=Host(\`${DOMAIN}\`)" \
   --label "traefik.http.routers.${TRAEFIK_ROUTER}.entrypoints=websecure" \
+  --label "traefik.http.routers.${TRAEFIK_ROUTER}.tls=true" \
   --label "traefik.http.routers.${TRAEFIK_ROUTER}.tls.certresolver=${TRAEFIK_CERT_RESOLVER}" \
+  --label "traefik.http.routers.${TRAEFIK_ROUTER}-http.rule=Host(\`${DOMAIN}\`)" \
+  --label "traefik.http.routers.${TRAEFIK_ROUTER}-http.entrypoints=web" \
+  --label "traefik.http.routers.${TRAEFIK_ROUTER}-http.middlewares=${TRAEFIK_ROUTER}-https-redirect" \
+  --label "traefik.http.routers.${TRAEFIK_ROUTER}-http.service=${TRAEFIK_ROUTER}" \
+  --label "traefik.http.middlewares.${TRAEFIK_ROUTER}-https-redirect.redirectscheme.scheme=https" \
+  --label "traefik.http.middlewares.${TRAEFIK_ROUTER}-https-redirect.redirectscheme.permanent=true" \
   --label "traefik.http.services.${TRAEFIK_ROUTER}.loadbalancer.server.port=8000" \
   -p "$HOST_BIND:8000" \
   "$IMAGE_NAME"

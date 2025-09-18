@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
@@ -9,7 +9,7 @@ class NewsHeadline(BaseModel):
     link: str = Field(..., description="URL to full article")
     published_at: datetime = Field(..., description="Publication timestamp")
     source: str = Field(..., description="Source name")
-    fetched_at: datetime = Field(default_factory=datetime.now, description="When this headline was fetched")
+    fetched_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="When this headline was fetched (UTC)")
 
     @field_validator('title')
     def validate_title(cls, v):
@@ -30,10 +30,11 @@ class NewsHeadline(BaseModel):
 
     @field_validator('published_at')
     def validate_published_at(cls, v):
-        now = datetime.now(v.tzinfo) if v.tzinfo else datetime.now()
+        # Use UTC now if tzinfo missing
+        now = datetime.now(timezone.utc) if v.tzinfo is None else datetime.now(v.tzinfo)
         time_diff = now - v
-        if time_diff.total_seconds() > 604800:  # 7 days
-            raise ValueError("Published date must be within the last 7 days")
+        if time_diff.total_seconds() > 2592000:  # 30 days
+            raise ValueError("Published date must be within the last 30 days")
         return v
 
     @field_validator('source')

@@ -42,9 +42,23 @@ class SourceConfig:
             "max_stories": 50
         },
         {
-            "name": "Wall Street Journal",
+            "name": "MarketWatch",
             "rss_url": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
             "fallback_url": "https://www.marketwatch.com/",
+            "enabled": True,
+            "max_stories": 30
+        },
+        {
+            "name": "Reuters",
+            "rss_url": "https://news.google.com/rss/search?q=source:Reuters%20markets%20when:1d&hl=en-US&gl=US&ceid=US:en",
+            "fallback_url": "https://www.reuters.com/markets/",
+            "enabled": True,
+            "max_stories": 30
+        },
+        {
+            "name": "Wall Street Journal",
+            "rss_url": "https://news.google.com/rss/search?q=site:wsj.com%20markets&hl=en-US&gl=US&ceid=US:en",
+            "fallback_url": "https://www.wsj.com/news/markets",
             "enabled": True,
             "max_stories": 30
         }
