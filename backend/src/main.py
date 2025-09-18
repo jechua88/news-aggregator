@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -20,7 +20,8 @@ from .services.scheduler import RefreshScheduler
 
 BASE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = BASE_DIR.parent.parent
-STATIC_DIR = BASE_DIR / "static"
+STATIC_DIR = BASE_DIR.parent / "static"
+STATIC_ASSETS_DIR = STATIC_DIR / "static"
 
 
 def load_environment() -> None:
@@ -98,13 +99,10 @@ app.include_router(status_routes.router, prefix="/api")
 app.include_router(refresh_routes.router, prefix="/api")
 
 _ensure_static_dir()
-app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
-
-# Optional: fallback so React Router works
-@app.get("/{full_path:path}")
-async def frontend_catchall(full_path: str):
-    index_path = os.path.join("static", "index.html")
-    return FileResponse(index_path)
+if STATIC_ASSETS_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_ASSETS_DIR)), name="frontend-static")
+else:
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="frontend-static")
 
 # Add CORS middleware for frontend communication
 cors_origins = get_settings().cors_origin_list or ["https://news.jechua.com"]
@@ -146,10 +144,19 @@ async def global_exception_handler(request, exc):
         }
     )
 
-# Root endpoint
-@app.get("/")
-async def root():
-    """Root endpoint with API information"""
+@app.get("/", include_in_schema=False)
+async def serve_frontend_root():
+    index_path = STATIC_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return {
+        "message": "Financial News Aggregator API",
+        "documentation": "/docs",
+    }
+
+
+@app.get("/api")
+async def api_index():
     return {
         "message": "Welcome to News Aggregator API",
         "version": "1.0.0",
@@ -157,9 +164,11 @@ async def root():
             "news": "/api/news",
             "sources": "/api/sources",
             "source_status": "/api/sources/{source_name}/status",
-            "refresh": "/api/refresh"
+            "refresh": "/api/refresh",
+            "health": "/health",
+            "metrics": "/metrics",
         },
-        "documentation": "/docs"
+        "documentation": "/docs",
     }
 
 # Health check endpoint
@@ -195,3 +204,24 @@ async def metrics(request: Request):
         "cache_status": data["cache_status"],
         "last_updated": data["last_updated"],
     }
+
+
+# Optional: fallback so React Router works
+@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.svg", include_in_schema=False)
+async def favicon():
+    for name in ("favicon.ico", "favicon.svg"):
+        candidate = STATIC_DIR / name
+        if candidate.exists():
+            return FileResponse(candidate)
+    raise HTTPException(status_code=404)
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+async def frontend_catchall(full_path: str):
+    if full_path.startswith(("api", "health", "metrics")):
+        raise HTTPException(status_code=404)
+    index_path = STATIC_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    raise HTTPException(status_code=404)
